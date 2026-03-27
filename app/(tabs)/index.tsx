@@ -10,38 +10,43 @@ import { useApps } from '../../src/context/AppsContext';
 import { useCategories } from '../../src/context/CategoriesContext';
 import { useTheme } from '../../src/context/ThemeContext';
 import { AppCard } from '../../src/components/AppCard';
-import { MiniApp } from '../../src/types';
+import { MiniApp, RemoteApp } from '../../src/types';
 
 const ALL_CAT_ID = 'all';
 
 export default function StoreScreen() {
-    const { apps, loading, removeApp } = useApps();
+    const { apps, remoteApps, refreshingRemote, fetchRemoteApps, importRemoteApp } = useApps();
     const { categories } = useCategories();
     const { theme, mode, toggleTheme } = useTheme();
     const [search, setSearch] = useState('');
     const [activeCategory, setActiveCategory] = useState(ALL_CAT_ID);
     const [searchFocused, setSearchFocused] = useState(false);
 
-    const handleOpen = (app: MiniApp) => {
-        router.push(`/viewer/${app.id}`);
-    };
+    const handleImport = async (app: MiniApp | RemoteApp) => {
+        const isInstalled = apps.some(a => a.remoteId === app.id);
+        if (isInstalled) {
+            // Si déjà installé, on l'ouvre simplement
+            const installedApp = apps.find(a => a.remoteId === app.id);
+            if (installedApp) router.push(`/viewer/${installedApp.id}`);
+            return;
+        }
 
-    const handleLongPress = (app: MiniApp) => {
         Alert.alert(
-            `Supprimer "${app.name}" ?`,
-            'Cette action est irréversible.',
+            'Importer l\'application',
+            `Voulez-vous ajouter "${app.name}" à votre collection ?`,
             [
-                { text: 'Annuler', style: 'cancel' },
+                { text: 'Plus tard', style: 'cancel' },
                 {
-                    text: 'Supprimer',
-                    style: 'destructive',
-                    onPress: () => removeApp(app.id),
+                    text: 'Ajouter',
+                    onPress: () => importRemoteApp(app as RemoteApp)
                 },
             ]
         );
     };
 
-    const filtered = apps.filter(app => {
+    const isAppInstalled = (remoteId: string) => apps.some(a => a.remoteId === remoteId);
+
+    const filtered = remoteApps.filter(app => {
         const matchCat = activeCategory === ALL_CAT_ID || app.categoryId === activeCategory;
         const matchSearch = search.length === 0 ||
             app.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -63,7 +68,11 @@ export default function StoreScreen() {
                 style={styles.header}
             >
                 <View style={styles.headerRow}>
-                    <View style={styles.headerLeft}>
+                    <TouchableOpacity
+                        style={styles.headerLeft}
+                        onPress={() => router.push('/info')}
+                        activeOpacity={0.7}
+                    >
                         <View style={[styles.logoContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                             <Image
                                 source={require('../../assets/Logo_CombiStore.png')}
@@ -72,17 +81,27 @@ export default function StoreScreen() {
                             />
                         </View>
                         <View>
-                            <Text style={[styles.headerTitle, { color: theme.text }]}>CombiStore</Text>
-                            <Text style={[styles.headerSlogan, { color: theme.textSecondary }]}>Vos apps à votre aise</Text>
+                            <Text style={[styles.headerTitle, { color: theme.text }]}>Découvrir</Text>
+                            <Text style={[styles.headerSlogan, { color: theme.textSecondary }]}>Nouveautés du Cloud</Text>
                         </View>
-                    </View>
-
-                    <TouchableOpacity
-                        onPress={toggleTheme}
-                        style={[styles.themeToggle, { backgroundColor: theme.surface, borderColor: theme.border }]}
-                    >
-                        <Text style={styles.themeToggleIcon}>{mode === 'dark' ? '☀️' : '🌙'}</Text>
                     </TouchableOpacity>
+
+                    <View style={styles.headerRight}>
+                        <TouchableOpacity
+                            onPress={fetchRemoteApps}
+                            disabled={refreshingRemote}
+                            style={[styles.headerIconBtn, { backgroundColor: theme.surface, borderColor: theme.border, marginRight: 8 }]}
+                        >
+                            <Text style={[styles.headerIconText, refreshingRemote && { opacity: 0.5 }]}>🔄</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            onPress={toggleTheme}
+                            style={[styles.headerIconBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                        >
+                            <Text style={styles.headerIconText}>{mode === 'dark' ? '☀️' : '🌙'}</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
                 {/* Search bar with subtle animation feel */}
@@ -90,7 +109,7 @@ export default function StoreScreen() {
                     <Text style={styles.searchIcon}>🔍</Text>
                     <TextInput
                         style={[styles.searchInput, { color: theme.text }]}
-                        placeholder="Rechercher une app..."
+                        placeholder="Rechercher dans le cloud..."
                         placeholderTextColor={theme.textMuted}
                         value={search}
                         onChangeText={setSearch}
@@ -146,45 +165,35 @@ export default function StoreScreen() {
                 columnWrapperStyle={styles.row}
                 showsVerticalScrollIndicator={false}
                 refreshControl={
-                    <RefreshControl refreshing={loading} tintColor={theme.accent} />
+                    <RefreshControl refreshing={refreshingRemote} onRefresh={fetchRemoteApps} tintColor={theme.accent} />
                 }
                 ListHeaderComponent={
                     <View style={styles.statsBar}>
                         <Text style={[styles.countText, { color: theme.textMuted }]}>
-                            {filtered.length} app{filtered.length !== 1 ? 's' : ''} trouvée{filtered.length !== 1 ? 's' : ''}
+                            {filtered.length} app{filtered.length !== 1 ? 's' : ''} disponible{filtered.length !== 1 ? 's' : ''}
                         </Text>
                         <View style={[styles.statsLine, { backgroundColor: theme.border }]} />
                     </View>
                 }
                 ListEmptyComponent={
                     <View style={styles.empty}>
-                        <Text style={styles.emptyIcon}>📭</Text>
+                        <Text style={styles.emptyIcon}>☁️</Text>
                         <Text style={[styles.emptyTitle, { color: theme.text }]}>
-                            {search || activeCategory !== ALL_CAT_ID ? 'Aucun résultat' : 'Aucune app'}
+                            {search || activeCategory !== ALL_CAT_ID ? 'Aucun résultat' : 'Bientôt disponible'}
                         </Text>
                         <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
                             {search || activeCategory !== ALL_CAT_ID
-                                ? 'Essayez une autre recherche ou catégorie.'
-                                : 'Configurez vos apps dans l\'onglet Mes Apps !'}
+                                ? 'Essayez une autre recherche.'
+                                : 'Le catalogue sera bientôt mis à jour avec de nouvelles pépites.'}
                         </Text>
-                        {!search && activeCategory === ALL_CAT_ID && (
-                            <TouchableOpacity
-                                style={styles.emptyBtn}
-                                onPress={() => router.push('/(tabs)/manage')}
-                            >
-                                <LinearGradient colors={GRADIENTS.accent} style={styles.emptyBtnGrad}>
-                                    <Text style={styles.emptyBtnText}>Ajouter ma première app</Text>
-                                </LinearGradient>
-                            </TouchableOpacity>
-                        )}
                     </View>
                 }
                 renderItem={({ item }) => (
                     <AppCard
-                        app={item}
+                        app={item as MiniApp}
                         category={getCategory(item.categoryId)}
-                        onPress={() => handleOpen(item)}
-                        onLongPress={() => handleLongPress(item)}
+                        onPress={() => handleImport(item)}
+                        isInstalled={isAppInstalled(item.id)}
                     />
                 )}
             />
@@ -252,7 +261,11 @@ const styles = StyleSheet.create({
         marginTop: 1,
         opacity: 0.8,
     },
-    themeToggle: {
+    headerRight: {
+        flexDirection: 'row',
+        gap: 10,
+    },
+    headerIconBtn: {
         width: 44,
         height: 44,
         borderRadius: 14,
@@ -260,7 +273,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         borderWidth: 1,
     },
-    themeToggleIcon: {
+    headerIconText: {
         fontSize: 20,
     },
     searchBar: {

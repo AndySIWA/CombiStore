@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Andy SIWA - Ingénieur Électricien Innovant. Spécialisé en électrotechnique, électronique et informatique.">
+    <title>Andy SIWA | Ingénieur Électricien Innovant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header id="header">
+        <div class="container header-container">
+            <a href="#" class="logo">
+                <img src="img/image_1.png" alt="VoltiSmart">
+                <span class="logo-text"><span>Andy</span><span>SIWA</span></span>
+                <span class="pulse-dot"></span>
+            </a>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="#accueil">Accueil</a></li>
+                    <li><a href="#apropos">À Propos</a></li>
+                    <li><a href="#services">Services</a></li>
+                    <li><a href="#competences">Compétences</a></li>
+                    <li><a href="#projets">Projets</a></li>
+                    <li><a href="#experience">Expérience</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+            <button class="mobile-toggle" onclick="toggleMobileMenu()">☰</button>
+        </div>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <button class="mobile-menu-close" onclick="toggleMobileMenu()">×</button>
+        <a href="#accueil" onclick="toggleMobileMenu()">Accueil</a>
+        <a href="#apropos" onclick="toggleMobileMenu()">À Propos</a>
+        <a href="#services" onclick="toggleMobileMenu()">Services</a>
+        <a href="#competences" onclick="toggleMobileMenu()">Compétences</a>
+        <a href="#projets" onclick="toggleMobileMenu()">Projets</a>
+        <a href="#experience" onclick="toggleMobileMenu()">Expérience</a>
+        <a href="#contact" onclick="toggleMobileMenu()">Contact</a>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero" id="accueil">
+        <canvas id="particles-canvas"></canvas>
+        <div class="hero-grid"></div>
+        <div class="floating-shape shape-1"></div>
+        <div class="floating-shape shape-2"></div>
+        <div class="floating-shape shape-3"></div>
+
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1>ANDY SIWA</h1>
+                    <p class="hero-subtitle">INGÉNIEUR ÉLECTRICIEN INNOVANT</p>
+                    <p class="hero-description">
+                        Je transforme l'énergie en <span class="blue">solutions intelligentes</span>.
+                        Spécialisé en <span class="blue">électrotechnique</span>,
+                        <span class="purple">électronique</span> et
+                        <span class="orange">informatique</span>.
+                    </p>
+                    <div class="hero-cta">
+                        <a href="#projets" class="btn-electric">
+                            <i class="fas fa-bolt"></i> Voir mes projets
+                        </a>
+                        <a href="https://wa.me/237652481643" class="btn-electric btn-electric-purple" target="_blank">
+                            <i class="fab fa-whatsapp"></i> WhatsApp
+                        </a>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <div class="hero-image-container">
+                        <div class="hero-glow"></div>
+                        <div class="orbit-ring">
+                            <span class="orbit-dot"
+                                style="top: 0; left: 50%; transform: translateX(-50%); background: var(--electric-blue);"></span>
+                            <span class="orbit-dot"
+                                style="bottom: 10%; right: 10%; background: var(--plasma-purple);"></span>
+                            <span class="orbit-dot"
+                                style="bottom: 20%; left: 5%; background: var(--neon-green);"></span>
+                        </div>
+                        <img src="img/image_2.jpg" alt="Andy SIWA" width="350" height="350" fetchpriority="high">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about" id="apropos">
+        <div class="container">
+            <h2 class="section-title">À PROPOS</h2>
+            <div class="about-content">
+                <div class="about-image reveal">
+                    <div class="about-image-glow"></div>
+                    <div class="about-image-container">
+                        <img src="img/Andy_Bureau.jpg" alt="Andy SIWA au bureau" loading="lazy">
+                        <div class="about-image-overlay"></div>
+                        <span class="corner-accent corner-tl"></span>
+                        <span class="corner-accent corner-tr"></span>
+                        <span class="corner-accent corner-bl"></span>
+                        <span class="corner-accent corner-br"></span>
+                    </div>
+                </div>
+                <div class="about-text reveal">
+                    <p>
+                        <strong class="green">Ingénieur électricien polyvalent</strong>, je me spécialise dans la
+                        convergence des domaines
+                        <span class="blue">électrotechniques</span>, <span class="purple">électroniques</span> et
+                        <span class="orange">informatiques</span> pour créer des solutions innovantes.
+                    </p>
+                    <p>
+                        Mon approche combine <span class="blue">rigueur technique</span> et
+                        <span class="purple">créativité</span> pour aborder les défis énergétiques modernes,
+                        avec une passion pour les projets qui repoussent les limites technologiques.
+                    </p>
+                    <p>
+                        En recherche constante d'innovation, je m'adapte aux environnements pluridisciplinaires
+                        et collabore efficacement pour développer des <span class="green">systèmes énergétiques
+                            intelligents</span>
+                        et <span class="yellow">durables</span>.
+                    </p>
+                    <p class="interests-title">Centres d'intérêt</p>
+                    <div class="interests">
+                        <!-- <span class="interest-tag"><i class="fas fa-code"></i> Codage</span> -->
+                        <span class="interest-tag"><i class="fas fa-microchip"></i> Technologie</span>
+                        <span class="interest-tag"><i class="fas fa-tools"></i> Bidouillage</span>
+                        <span class="interest-tag"><i class="fas fa-film"></i> Documentaires</span>
+                        <span class="interest-tag"><i class="fas fa-video"></i> Montages</span>
+                        <span class="interest-tag"><i class="fas fa-user-astronaut"></i> Astrophysique</span>
+                        <span class="interest-tag"><i class="fas fa-chess-knight"></i> Échecs</span>
+                        <span class="interest-tag"><i class="fas fa-dumbbell"></i> Fitness</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services" id="services">
+        <div class="container">
+            <h2 class="section-title">MES SERVICES</h2>
+            <div class="services-grid">
+                <div class="service-card glass-card reveal" style="--service-color: #00D4FF;">
+                    <div class="service-header">
+                        <div class="service-icon"
+                            style="background: rgba(0, 212, 255, 0.15); border: 1px solid rgba(0, 212, 255, 0.3); color: #00D4FF;">
+                            <i class="fas fa-plug"></i>
+                        </div>
+                        <h3>Électricité Bâtiment</h3>
+                    </div>
+                    <p>Conception et réalisation d'installations électriques pour bâtiments résidentiels et industriels
+                        en toute conformité.</p>
+                    <div class="service-details">
+                        <span class="service-detail" style="color: #00D4FF;">Installations conformes</span>
+                        <span class="service-detail" style="color: #00D4FF;">Sécurité garantie</span>
+                        <span class="service-detail" style="color: #00D4FF;">Efficacité énergétique</span>
+                    </div>
+                    <a href="#contact" class="service-link" style="color: #00D4FF;">En savoir plus →</a>
+                </div>
+
+                <div class="service-card glass-card reveal" style="--service-color: #FFE135;">
+                    <div class="service-header">
+                        <div class="service-icon"
+                            style="background: rgba(255, 225, 53, 0.15); border: 1px solid rgba(255, 225, 53, 0.3); color: #FFE135;">
+                            <i class="fas fa-sun"></i>
+                        </div>
+                        <h3>Installation Solaire PV</h3>
+                    </div>
+                    <p>Conception et réalisation de systèmes photovoltaïques hybrides ou autonomes pour une production
+                        d'énergie durable.</p>
+                    <div class="service-details">
+                        <span class="service-detail" style="color: #FFE135;">Systèmes hybrides</span>
+                        <span class="service-detail" style="color: #FFE135;">Stockage batterie</span>
+                        <span class="service-detail" style="color: #FFE135;">Énergie durable</span>
+                    </div>
+                    <a href="#contact" class="service-link" style="color: #FFE135;">En savoir plus →</a>
+                </div>
+
+                <div class="service-card glass-card reveal" style="--service-color: #39FF14;">
+                    <div class="service-header">
+                        <div class="service-icon"
+                            style="background: rgba(57, 255, 20, 0.15); border: 1px solid rgba(57, 255, 20, 0.3); color: #39FF14;">
+                            <i class="fas fa-laptop-code"></i>
+                        </div>
+                        <h3>Programmation Informatique</h3>
+                    </div>
+                    <p>Conception et développement de programmes informatiques pour automatiser des processus et
+                        améliorer la productivité.</p>
+                    <div class="service-details">
+                        <span class="service-detail" style="color: #39FF14;">Applications sur mesure</span>
+                        <span class="service-detail" style="color: #39FF14;">Automatisation</span>
+                        <span class="service-detail" style="color: #39FF14;">Gestion de systèmes</span>
+                    </div>
+                    <a href="#contact" class="service-link" style="color: #39FF14;">En savoir plus →</a>
+                </div>
+
+                <div class="service-card glass-card reveal" style="--service-color: #FF6B35;">
+                    <div class="service-header">
+                        <div class="service-icon"
+                            style="background: rgba(255, 107, 53, 0.15); border: 1px solid rgba(255, 107, 53, 0.3); color: #FF6B35;">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h3>Réseau Électrique</h3>
+                    </div>
+                    <p>Implantation de poteaux HTA/BT, intervention de maintenance en hauteur, branchement Eneo et
+                        installation de compteurs.</p>
+                    <div class="service-details">
+                        <span class="service-detail" style="color: #FF6B35;">Poteaux HTA/BT</span>
+                        <span class="service-detail" style="color: #FF6B35;">Maintenance</span>
+                        <span class="service-detail" style="color: #FF6B35;">Compteurs prépayés</span>
+                    </div>
+                    <a href="#contact" class="service-link" style="color: #FF6B35;">En savoir plus →</a>
+                </div>
+
+                <div class="service-card glass-card reveal" style="--service-color: #B829F7;">
+                    <div class="service-header">
+                        <div class="service-icon"
+                            style="background: rgba(184, 41, 247, 0.15); border: 1px solid rgba(184, 41, 247, 0.3); color: #B829F7;">
+                            <i class="fas fa-palette"></i>
+                        </div>
+                        <h3>Conception Graphique</h3>
+                    </div>
+                    <p>Création d'affiches publicitaires, flyers, logos, identité visuelle et montage photo
+                        professionnel.</p>
+                    <div class="service-details">
+                        <span class="service-detail" style="color: #B829F7;">Design créatif</span>
+                        <span class="service-detail" style="color: #B829F7;">Identité visuelle</span>
+                        <span class="service-detail" style="color: #B829F7;">Retouche photo</span>
+                    </div>
+                    <a href="#contact" class="service-link" style="color: #B829F7;">En savoir plus →</a>
+                </div>
+
+                <div class="service-card glass-card reveal" style="--service-color: #00D4FF;">
+                    <div class="service-header">
+                        <div class="service-icon"
+                            style="background: rgba(0, 212, 255, 0.15); border: 1px solid rgba(0, 212, 255, 0.3); color: #00D4FF;">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <h3>E-Commerce et Importation</h3>
+                    </div>
+                    <p>Achats en ligne, fourniture d'articles, personnalisation OEM et assistance sur Alibaba.</p>
+                    <div class="service-details">
+                        <span class="service-detail" style="color: #00D4FF;">Importation</span>
+                        <span class="service-detail" style="color: #00D4FF;">Personnalisation OEM</span>
+                        <span class="service-detail" style="color: #00D4FF;">Formation Alibaba</span>
+                    </div>
+                    <a href="#contact" class="service-link" style="color: #00D4FF;">En savoir plus →</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section class="skills" id="competences">
+        <div class="container">
+            <h2 class="section-title">COMPÉTENCES</h2>
+            <div class="skills-grid">
+                <div class="skill-card glass-card reveal">
+                    <div class="skill-header">
+                        <div class="skill-icon"
+                            style="background: rgba(0, 212, 255, 0.15); border: 1px solid rgba(0, 212, 255, 0.3); color: #00D4FF;">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h3 style="color: #00D4FF;">Électrotechnique</h3>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-info">
+                            <span class="skill-name"><span style="color: #00D4FF;">✓</span> Électricité bâtiment</span>
+                            <span class="skill-percent" style="color: #00D4FF;" data-target="95">0%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-bar-fill"
+                                style="background: linear-gradient(90deg, rgba(0, 212, 255, 0.5), #00D4FF); width: 0%;"
+                                data-width="95"></div>
+                        </div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-info">
+                            <span class="skill-name"><span style="color: #00D4FF;">✓</span> Réseaux HTA/BT</span>
+                            <span class="skill-percent" style="color: #00D4FF;" data-target="90">0%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-bar-fill"
+                                style="background: linear-gradient(90deg, rgba(0, 212, 255, 0.5), #00D4FF); width: 0%;"
+                                data-width="90"></div>
+                        </div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-info">
+                            <span class="skill-name"><span style="color: #00D4FF;">✓</span> Solaire
+                                photovoltaïque</span>
+                            <span class="skill-percent" style="color: #00D4FF;" data-target="88">0%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-bar-fill"
+                                style="background: linear-gradient(90deg, rgba(0, 212, 255, 0.5), #00D4FF); width: 0%;"
+                                data-width="88"></div>
+                        </div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-info">
+                            <span class="skill-name"><span style="color: #00D4FF;">✓</span> Installation de
+                                compteurs</span>
+                            <span class="skill-percent" style="color: #00D4FF;" data-target="92">0%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-bar-fill"
+                                style="background: linear-gradient(90deg, rgba(0, 212, 255, 0.5), #00D4FF); width: 0%;"
+                                data-width="92"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="skill-card glass-card reveal">
+                    <div class="skill-header">
+                        <div class="skill-icon"
+                            style="background: rgba(184, 41, 247, 0.15); border: 1px solid rgba(184, 41, 247, 0.3); color: #B829F7;">
+                            <i class="fas fa-microchip"></i>
+                        </div>
+                        <h3 style="color: #B829F7;">Électronique</h3>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-info">
+                            <span class="skill-name"><span style="color: #B829F7;">✓</span> Microcontrôleurs</span>
+                            <span class="skill-percent" style="color: #B829F7;" data-target="85">0%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-bar-fill"
+                                style="background: linear-gradient(90deg, rgba(184, 41, 247, 0.5), #B829F7); width: 0%;"
+                                data-width="85"></div>
+                        </div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-info">
+                            <span class="skill-name"><span style="color: #B829F7;">✓</span> Circuits
+                                électroniques</span>
+                            <span class="skill-percent" style="color: #B829F7;" data-target="80">0%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-bar-fill"
+                                style="background: linear-gradient(90deg, rgba(184, 41, 247, 0.5), #B829F7); width: 0%;"
+                                data-width="80"></div>
+                        </div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-info">
+                            <span class="skill-name"><span style="color: #B829F7;">✓</span> Systèmes embarqués</span>
+                            <span class="skill-percent" style="color: #B829F7;" data-target="82">0%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-bar-fill"
+                                style="background: linear-gradient(90deg, rgba(184, 41, 247, 0.5), #B829F7); width: 0%;"
+                                data-width="82"></div>
+                        </div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-info">
+                            <span class="skill-name"><span style="color: #B829F7;">✓</span> Domotique</span>
+                            <span class="skill-percent" style="color: #B829F7;" data-target="88">0%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-bar-fill"
+                                style="background: linear-gradient(90deg, rgba(184, 41, 247, 0.5), #B829F7); width: 0%;"
+                                data-width="88"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="skill-card glass-card reveal">
+                    <div class="skill-header">
+                        <div class="skill-icon"
+                            style="background: rgba(57, 255, 20, 0.15); border: 1px solid rgba(57, 255, 20, 0.3); color: #39FF14;">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <h3 style="color: #39FF14;">Informatique</h3>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-info">
+                            <span class="skill-name"><span style="color: #39FF14;">✓</span> Programmation</span>
+                            <span class="skill-percent" style="color: #39FF14;" data-target="85">0%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-bar-fill"
+                                style="background: linear-gradient(90deg, rgba(57, 255, 20, 0.5), #39FF14); width: 0%;"
+                                data-width="85"></div>
+                        </div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-info">
+                            <span class="skill-name"><span style="color: #39FF14;">✓</span> Développement Web</span>
+                            <span class="skill-percent" style="color: #39FF14;" data-target="80">0%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-bar-fill"
+                                style="background: linear-gradient(90deg, rgba(57, 255, 20, 0.5), #39FF14); width: 0%;"
+                                data-width="80"></div>
+                        </div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-info">
+                            <span class="skill-name"><span style="color: #39FF14;">✓</span> Bases de données</span>
+                            <span class="skill-percent" style="color: #39FF14;" data-target="75">0%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-bar-fill"
+                                style="background: linear-gradient(90deg, rgba(57, 255, 20, 0.5), #39FF14); width: 0%;"
+                                data-width="75"></div>
+                        </div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-info">
+                            <span class="skill-name"><span style="color: #39FF14;">✓</span> Applications mobiles</span>
+                            <span class="skill-percent" style="color: #39FF14;" data-target="78">0%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-bar-fill"
+                                style="background: linear-gradient(90deg, rgba(57, 255, 20, 0.5), #39FF14); width: 0%;"
+                                data-width="78"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="skill-card glass-card reveal">
+                    <div class="skill-header">
+                        <div class="skill-icon"
+                            style="background: rgba(255, 107, 53, 0.15); border: 1px solid rgba(255, 107, 53, 0.3); color: #FF6B35;">
+                            <i class="fas fa-pen-nib"></i>
+                        </div>
+                        <h3 style="color: #FF6B35;">Design</h3>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-info">
+                            <span class="skill-name"><span style="color: #FF6B35;">✓</span> Graphisme</span>
+                            <span class="skill-percent" style="color: #FF6B35;" data-target="80">0%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-bar-fill"
+                                style="background: linear-gradient(90deg, rgba(255, 107, 53, 0.5), #FF6B35); width: 0%;"
+                                data-width="80"></div>
+                        </div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-info">
+                            <span class="skill-name"><span style="color: #FF6B35;">✓</span> UI/UX Design</span>
+                            <span class="skill-percent" style="color: #FF6B35;" data-target="75">0%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-bar-fill"
+                                style="background: linear-gradient(90deg, rgba(255, 107, 53, 0.5), #FF6B35); width: 0%;"
+                                data-width="75"></div>
+                        </div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-info">
+                            <span class="skill-name"><span style="color: #FF6B35;">✓</span> Montage photo</span>
+                            <span class="skill-percent" style="color: #FF6B35;" data-target="82">0%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-bar-fill"
+                                style="background: linear-gradient(90deg, rgba(255, 107, 53, 0.5), #FF6B35); width: 0%;"
+                                data-width="82"></div>
+                        </div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-info">
+                            <span class="skill-name"><span style="color: #FF6B35;">✓</span> Identité visuelle</span>
+                            <span class="skill-percent" style="color: #FF6B35;" data-target="78">0%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-bar-fill"
+                                style="background: linear-gradient(90deg, rgba(255, 107, 53, 0.5), #FF6B35); width: 0%;"
+                                data-width="78"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-item glass-card reveal" style="border-color: rgba(0, 212, 255, 0.3);">
+                    <div class="stat-value" style="color: #00D4FF; text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);">6+
+                    </div>
+                    <div class="stat-label">Années d'expérience</div>
+                </div>
+                <div class="stat-item glass-card reveal" style="border-color: rgba(184, 41, 247, 0.3);">
+                    <div class="stat-value" style="color: #B829F7; text-shadow: 0 0 20px rgba(184, 41, 247, 0.5);">50+
+                    </div>
+                    <div class="stat-label">Projets réalisés</div>
+                </div>
+                <div class="stat-item glass-card reveal" style="border-color: rgba(57, 255, 20, 0.3);">
+                    <div class="stat-value" style="color: #39FF14; text-shadow: 0 0 20px rgba(57, 255, 20, 0.5);">100%
+                    </div>
+                    <div class="stat-label">Satisfaction client</div>
+                </div>
+                <div class="stat-item glass-card reveal" style="border-color: rgba(255, 107, 53, 0.3);">
+                    <div class="stat-value" style="color: #FF6B35; text-shadow: 0 0 20px rgba(255, 107, 53, 0.5);">24/7
+                    </div>
+                    <div class="stat-label">Disponibilité</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section class="projects" id="projets">
+        <div class="container">
+            <h2 class="section-title">MES PROJETS</h2>
+            <div class="timeline">
+                <div class="timeline-line"></div>
+
+                <div class="timeline-item reveal">
+                    <div class="timeline-dot" style="background: #00D4FF; box-shadow: 0 0 15px #00D4FF;"></div>
+                    <div class="timeline-content glass-card">
+                        <div class="project-image">
+                            <img src="img/image_4.png" alt="Développement Logiciel" width="500" height="300"
+                                loading="lazy">
+                            <div class="project-overlay"
+                                style="background: linear-gradient(to top, rgba(0, 212, 255, 0.3), transparent);"></div>
+                            <div class="project-icon"
+                                style="background: rgba(0, 212, 255, 0.2); border: 1px solid rgba(0, 212, 255, 0.4); color: #00D4FF;">
+                                <i class="fas fa-laptop-code"></i>
+                            </div>
+                        </div>
+                        <h3 style="color: #00D4FF;">Développement Logiciel</h3>
+                        <p>Création de logiciels sur mesure, développement d'applications Android et conception de sites
+                            web modernes adaptés aux besoins variés des clients.</p>
+                        <div class="tech-tags">
+                            <span class="tech-tag"
+                                style="background: rgba(0, 212, 255, 0.15); color: #00D4FF; border: 1px solid rgba(0, 212, 255, 0.3);">Flutter</span>
+                            <span class="tech-tag"
+                                style="background: rgba(0, 212, 255, 0.15); color: #00D4FF; border: 1px solid rgba(0, 212, 255, 0.3);">React.js</span>
+                            <span class="tech-tag"
+                                style="background: rgba(0, 212, 255, 0.15); color: #00D4FF; border: 1px solid rgba(0, 212, 255, 0.3);">Python</span>
+                            <span class="tech-tag"
+                                style="background: rgba(0, 212, 255, 0.15); color: #00D4FF; border: 1px solid rgba(0, 212, 255, 0.3);">Django</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item reveal">
+                    <div class="timeline-dot" style="background: #FFE135; box-shadow: 0 0 15px #FFE135;"></div>
+                    <div class="timeline-content glass-card">
+                        <div class="project-image">
+                            <img src="img/image_5.jpg" alt="Branchements PERACE" width="500" height="300"
+                                loading="lazy">
+                            <div class="project-overlay"
+                                style="background: linear-gradient(to top, rgba(255, 225, 53, 0.3), transparent);">
+                            </div>
+                            <div class="project-icon"
+                                style="background: rgba(255, 225, 53, 0.2); border: 1px solid rgba(255, 225, 53, 0.4); color: #FFE135;">
+                                <i class="fas fa-plug"></i>
+                            </div>
+                        </div>
+                        <h3 style="color: #FFE135;">Branchements PERACE</h3>
+                        <p>Réalisation de branchements neufs pour le projet PERACE incluant l'implantation de support
+                            bois, l'installation de kits compteurs prépayés et le raccordement au réseau.</p>
+                        <div class="tech-tags">
+                            <span class="tech-tag"
+                                style="background: rgba(255, 225, 53, 0.15); color: #FFE135; border: 1px solid rgba(255, 225, 53, 0.3);">Branchement
+                                Eneo</span>
+                            <span class="tech-tag"
+                                style="background: rgba(255, 225, 53, 0.15); color: #FFE135; border: 1px solid rgba(255, 225, 53, 0.3);">Support
+                                BT</span>
+                            <span class="tech-tag"
+                                style="background: rgba(255, 225, 53, 0.15); color: #FFE135; border: 1px solid rgba(255, 225, 53, 0.3);">Compteurs
+                                prépayés</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item reveal">
+                    <div class="timeline-dot" style="background: #39FF14; box-shadow: 0 0 15px #39FF14;"></div>
+                    <div class="timeline-content glass-card">
+                        <div class="project-image">
+                            <img src="img/image_6.jpg" alt="Installation Solaire Hybride" width="500" height="300"
+                                loading="lazy">
+                            <div class="project-overlay"
+                                style="background: linear-gradient(to top, rgba(57, 255, 20, 0.3), transparent);"></div>
+                            <div class="project-icon"
+                                style="background: rgba(57, 255, 20, 0.2); border: 1px solid rgba(57, 255, 20, 0.4); color: #39FF14;">
+                                <i class="fas fa-sun"></i>
+                            </div>
+                        </div>
+                        <h3 style="color: #39FF14;">Installation Solaire Hybride</h3>
+                        <p>Conception et mise en place d'un système photovoltaïque hybride avec stockage batterie pour
+                            une maison autonome, intégrant la supervision à distance.</p>
+                        <div class="tech-tags">
+                            <span class="tech-tag"
+                                style="background: rgba(57, 255, 20, 0.15); color: #39FF14; border: 1px solid rgba(57, 255, 20, 0.3);">Panneaux
+                                PV</span>
+                            <span class="tech-tag"
+                                style="background: rgba(57, 255, 20, 0.15); color: #39FF14; border: 1px solid rgba(57, 255, 20, 0.3);">Onduleurs</span>
+                            <span class="tech-tag"
+                                style="background: rgba(57, 255, 20, 0.15); color: #39FF14; border: 1px solid rgba(57, 255, 20, 0.3);">Batteries</span>
+                            <span class="tech-tag"
+                                style="background: rgba(57, 255, 20, 0.15); color: #39FF14; border: 1px solid rgba(57, 255, 20, 0.3);">Supervision</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item reveal">
+                    <div class="timeline-dot" style="background: #B829F7; box-shadow: 0 0 15px #B829F7;"></div>
+                    <div class="timeline-content glass-card">
+                        <div class="project-image">
+                            <img src="img/image_7.png" alt="Système de Supervision" width="500" height="300"
+                                loading="lazy">
+                            <div class="project-overlay"
+                                style="background: linear-gradient(to top, rgba(184, 41, 247, 0.3), transparent);">
+                            </div>
+                            <div class="project-icon"
+                                style="background: rgba(184, 41, 247, 0.2); border: 1px solid rgba(184, 41, 247, 0.4); color: #B829F7;">
+                                <i class="fas fa-house-user"></i>
+                            </div>
+                        </div>
+                        <h3 style="color: #B829F7;">Système de Supervision</h3>
+                        <p>Développement d'un système domotique centralisé avec contrôle de l'éclairage, sécurité et
+                            gestion énergétique via interface web et mobile.</p>
+                        <div class="tech-tags">
+                            <span class="tech-tag"
+                                style="background: rgba(184, 41, 247, 0.15); color: #B829F7; border: 1px solid rgba(184, 41, 247, 0.3);">ESP32</span>
+                            <span class="tech-tag"
+                                style="background: rgba(184, 41, 247, 0.15); color: #B829F7; border: 1px solid rgba(184, 41, 247, 0.3);">Node.js</span>
+                            <span class="tech-tag"
+                                style="background: rgba(184, 41, 247, 0.15); color: #B829F7; border: 1px solid rgba(184, 41, 247, 0.3);">React.js</span>
+                            <span class="tech-tag"
+                                style="background: rgba(184, 41, 247, 0.15); color: #B829F7; border: 1px solid rgba(184, 41, 247, 0.3);">MQTT</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Experience Section -->
+    <section class="experience" id="experience">
+        <div class="container">
+            <h2 class="section-title">EXPÉRIENCE <span style="color: var(--plasma-purple);">PRO.</span></h2>
+            <div class="experience-timeline">
+                <div class="experience-line"></div>
+
+                <div class="experience-item reveal">
+                    <div class="experience-dot" style="background: #39FF14;"></div>
+                    <div class="experience-content glass-card" style="border-color: #39FF14;">
+                        <span class="experience-date"
+                            style="background: rgba(57, 255, 20, 0.15); color: #39FF14; border: 1px solid rgba(57, 255, 20, 0.3);">
+                            <span><i class="fas fa-calendar-alt"></i></span> Depuis Octobre 2025
+                        </span>
+                        <h3 style="color: #39FF14;">COORDONNATEUR TECHNIQUE</h3>
+                        <div class="experience-meta">
+                            <span><span style="color: #39FF14;"><i class="fas fa-building"></i></span> GENERAL
+                                SKILLS</span>
+                            <span><span style="color: #39FF14;"><i class="fas fa-location-dot"></i></span> Yaoundé,
+                                Cameroun</span>
+                        </div>
+                        <ul class="experience-tasks">
+                            <li><span style="background: #39FF14;"></span>Organisation et suivi des travaux de
+                                maintenance réseau Eneo</li>
+                            <li><span style="background: #39FF14;"></span>Analyse de productivité avec suivi du budget
+                                et de la rentabilité</li>
+                            <li><span style="background: #39FF14;"></span>Constitution de projets d'exécution pour les
+                                marchés publics</li>
+                            <li><span style="background: #39FF14;"></span>Planification des projets et gestion des
+                                ressources</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="experience-item reveal">
+                    <div class="experience-dot" style="background: #00D4FF;"></div>
+                    <div class="experience-content glass-card" style="border-color: #00D4FF;">
+                        <span class="experience-date"
+                            style="background: rgba(0, 212, 255, 0.15); color: #00D4FF; border: 1px solid rgba(0, 212, 255, 0.3);">
+                            <span><i class="fas fa-calendar-alt"></i></span> Janvier 2024 - Septembre 2025
+                        </span>
+                        <h3 style="color: #00D4FF;">CHARGÉ D'INTERVENTION</h3>
+                        <div class="experience-meta">
+                            <span><span style="color: #00D4FF;"><i class="fas fa-building"></i></span> GENERAL SKILLS
+                                (Sous-traitant Eneo)</span>
+                            <span><span style="color: #00D4FF;"><i class="fas fa-location-dot"></i></span> Yaoundé,
+                                Cameroun</span>
+                        </div>
+                        <ul class="experience-tasks">
+                            <li><span style="background: #00D4FF;"></span>Maintenance et construction de réseaux HTA/BT
+                            </li>
+                            <li><span style="background: #00D4FF;"></span>Implantation de supports électriques et
+                                déroulage de câbles</li>
+                            <li><span style="background: #00D4FF;"></span>Réalisation des branchements neufs (pose kits
+                                compteurs)</li>
+                            <li><span style="background: #00D4FF;"></span>Consignation/Déconsignation réseau HTA</li>
+                            <li><span style="background: #00D4FF;"></span>Installation des armements de support</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="experience-item reveal">
+                    <div class="experience-dot" style="background: #B829F7;"></div>
+                    <div class="experience-content glass-card" style="border-color: #B829F7;">
+                        <span class="experience-date"
+                            style="background: rgba(184, 41, 247, 0.15); color: #B829F7; border: 1px solid rgba(184, 41, 247, 0.3);">
+                            <span><i class="fas fa-calendar-alt"></i></span> Août 2022 - Octobre 2023
+                        </span>
+                        <h3 style="color: #B829F7;">ELECTRONICIEN, CONSULTANT ET FORMATEUR</h3>
+                        <div class="experience-meta">
+                            <span><span style="color: #B829F7;"><i class="fas fa-building"></i></span> Freelance</span>
+                            <span><span style="color: #B829F7;"><i class="fas fa-location-dot"></i></span> Douala,
+                                Cameroun</span>
+                        </div>
+                        <ul class="experience-tasks">
+                            <li><span style="background: #B829F7;"></span>Programmation de microcontrôleurs</li>
+                            <li><span style="background: #B829F7;"></span>Simulations et réalisation de circuits
+                                électroniques</li>
+                            <li><span style="background: #B829F7;"></span>Réalisation d'un système de gestion de
+                                l'énergie</li>
+                            <li><span style="background: #B829F7;"></span>Conception d'un système de supervision assisté
+                                par ordinateur</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="experience-item reveal">
+                    <div class="experience-dot" style="background: #FFE135;"></div>
+                    <div class="experience-content glass-card" style="border-color: #FFE135;">
+                        <span class="experience-date"
+                            style="background: rgba(255, 225, 53, 0.15); color: #FFE135; border: 1px solid rgba(255, 225, 53, 0.3);">
+                            <span><i class="fas fa-calendar-alt"></i></span> Juillet 2022 - Septembre 2022
+                        </span>
+                        <h3 style="color: #FFE135;">ELECTRICIEN, STAGIAIRE</h3>
+                        <div class="experience-meta">
+                            <span><span style="color: #FFE135;"><i class="fas fa-building"></i></span> SATED SARL</span>
+                            <span><span style="color: #FFE135;"><i class="fas fa-location-dot"></i></span> Douala,
+                                Cameroun</span>
+                        </div>
+                        <ul class="experience-tasks">
+                            <li><span style="background: #FFE135;"></span>Installation électrique résidentielle et
+                                câblage TGBT</li>
+                            <li><span style="background: #FFE135;"></span>Installation photovoltaïque</li>
+                            <li><span style="background: #FFE135;"></span>Supervision de systèmes PV hybrides (Victron
+                                Energy)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact" id="contact">
+        <div class="container">
+            <h2 class="section-title">CONTACTEZ-MOI</h2>
+            <div class="contact-grid">
+                <form class="contact-form glass-card reveal" id="contactForm">
+                    <h3>Envoyez un message</h3>
+                    <div class="form-group">
+                        <label>Nom complet</label>
+                        <input type="text" class="form-control" placeholder="Votre nom" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Adresse email</label>
+                        <input type="email" class="form-control" placeholder="votre@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Votre message</label>
+                        <textarea class="form-control" placeholder="Décrivez votre projet..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn-electric" style="width: 100%; justify-content: center;">
+                        <i class="fas fa-paper-plane"></i> Envoyer le message
+                    </button>
+                </form>
+
+                <div class="contact-info">
+                    <div class="info-card glass-card reveal">
+                        <h3>Travaillons ensemble</h3>
+                        <p>Disponible pour des missions stimulantes et des collaborations innovantes dans le domaine de
+                            l'électrotechnique, de l'électronique et de l'informatique.</p>
+
+                        <a href="mailto:blendy03ing@gmail.com" class="info-item">
+                            <div class="info-icon"
+                                style="background: rgba(0, 212, 255, 0.15); border: 1px solid rgba(0, 212, 255, 0.3); color: #00D4FF;">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div class="info-text">
+                                <p>Email</p>
+                                <span>blendy03ing@gmail.com</span>
+                            </div>
+                        </a>
+
+                        <a href="tel:+237652481643" class="info-item">
+                            <div class="info-icon"
+                                style="background: rgba(57, 255, 20, 0.15); border: 1px solid rgba(57, 255, 20, 0.3); color: #39FF14;">
+                                <i class="fas fa-phone"></i>
+                            </div>
+                            <div class="info-text">
+                                <p>Téléphone</p>
+                                <span>+237 652 48 16 43</span>
+                            </div>
+                        </a>
+
+                        <a href="#" class="info-item">
+                            <div class="info-icon"
+                                style="background: rgba(255, 107, 53, 0.15); border: 1px solid rgba(255, 107, 53, 0.3); color: #FF6B35;">
+                                <i class="fas fa-location-dot"></i>
+                            </div>
+                            <div class="info-text">
+                                <p>Localisation</p>
+                                <span>Yaoundé, Cameroun</span>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="info-card glass-card reveal">
+                        <h3 style="color: var(--plasma-purple);">Réseaux sociaux</h3>
+                        <div class="social-links">
+                            <a href="https://www.linkedin.com/in/andy-siwa-180283199/" class="social-link"
+                                style="background: rgba(0, 119, 181, 0.15); border: 1px solid rgba(0, 119, 181, 0.3); color: #0077b5;"
+                                target="_blank" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                            <a href="https://github.com/AndySIWA/" class="social-link"
+                                style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff;"
+                                target="_blank" title="GitHub"><i class="fab fa-github"></i></a>
+                            <a href="https://wa.me/237652481643" class="social-link"
+                                style="background: rgba(37, 211, 102, 0.15); border: 1px solid rgba(37, 211, 102, 0.3); color: #25d366;"
+                                target="_blank" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                            <a href="https://web.facebook.com/andy.siwa.2025/" class="social-link"
+                                style="background: rgba(24, 119, 242, 0.15); border: 1px solid rgba(24, 119, 242, 0.3); color: #1877f2;"
+                                target="_blank" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="#" class="logo">
+                        <img src="img/image_8.png" alt="VoltiSmart">
+                        <span class="logo-text"><span>Andy</span><span>SIWA</span></span>
+                    </a>
+                    <p>Ingénieur électricien innovant spécialisé dans les solutions énergétiques intelligentes et
+                        durables.</p>
+                </div>
+
+                <div class="footer-nav">
+                    <h4>Navigation</h4>
+                    <ul>
+                        <li><a href="#accueil">Accueil</a></li>
+                        <li><a href="#apropos">À Propos</a></li>
+                        <li><a href="#services">Services</a></li>
+                        <li><a href="#projets">Projets</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-social">
+                    <h4>Suivez-moi</h4>
+                    <div class="social-links">
+                        <a href="https://www.linkedin.com/in/andy-siwa-180283199/" class="social-link"
+                            style="background: rgba(0, 119, 181, 0.15); border: 1px solid rgba(0, 119, 181, 0.3); color: #0077b5;"
+                            target="_blank"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="https://github.com/AndySIWA/" class="social-link"
+                            style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff;"
+                            target="_blank"><i class="fab fa-github"></i></a>
+                        <a href="https://wa.me/237652481643" class="social-link"
+                            style="background: rgba(37, 211, 102, 0.15); border: 1px solid rgba(37, 211, 102, 0.3); color: #25d366;"
+                            target="_blank"><i class="fab fa-whatsapp"></i></a>
+                        <a href="https://web.facebook.com/andy.siwa.2025/" class="social-link"
+                            style="background: rgba(24, 119, 242, 0.15); border: 1px solid rgba(24, 119, 242, 0.3); color: #1877f2;"
+                            target="_blank"><i class="fab fa-facebook-f"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>
+                    &copy; 2024 Andy SIWA. Tous droits réservés.
+                    <span>Fait avec <i class="fas fa-heart" style="color: #ff4d4d;"></i> et <i class="fas fa-bolt"
+                            style="color: #FFE135;"></i></span>
+                </p>
+                <p style="color: var(--text-gray); font-size: 0.8rem; margin-top: 10px;">Propulsé par l'énergie créative
+                    | VoltiSmart Engineering</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scroll to Top Button -->
+    <button class="scroll-top" id="scrollTop" onclick="scrollToTop()">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <!-- JavaScript -->
+    <script src="js/script.js"></script>
+</body>
+
+</html>

@@ -9,9 +9,10 @@ interface AppCardProps {
     category?: Category;
     onPress: () => void;
     onLongPress?: () => void;
+    isInstalled?: boolean;
 }
 
-export const AppCard = ({ app, category, onPress, onLongPress }: AppCardProps) => {
+export const AppCard = ({ app, category, onPress, onLongPress, isInstalled }: AppCardProps) => {
     const { theme } = useTheme();
     const isFeatured = false; // logic for featured can be added later
 
@@ -29,6 +30,13 @@ export const AppCard = ({ app, category, onPress, onLongPress }: AppCardProps) =
                     <View style={styles.glassHighlight} />
 
                     <View style={isFeatured ? styles.contentRowFeatured : styles.contentDefault}>
+                        {/* Status Badge */}
+                        {isInstalled && (
+                            <View style={[styles.installedBadge, { backgroundColor: theme.accent + '22', borderColor: theme.accent + '44' }]}>
+                                <Text style={[styles.installedText, { color: theme.accent }]}>Installée</Text>
+                            </View>
+                        )}
+
                         {/* Icon Bubble */}
                         <View style={[
                             styles.iconBubble,
@@ -93,6 +101,24 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255, 255, 255, 0.03)',
         borderBottomLeftRadius: 100,
         borderBottomRightRadius: 100,
+    },
+    installedBadge: {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderBottomLeftRadius: 12,
+        borderWidth: 1,
+        borderTopWidth: 0,
+        borderRightWidth: 0,
+        zIndex: 10,
+    },
+    installedText: {
+        fontFamily: FONT.bold,
+        fontSize: 9,
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
     },
     contentDefault: {
         flex: 1,

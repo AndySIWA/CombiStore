@@ -17,4 +17,17 @@ export interface MiniApp {
   source: string;
   icon: string;
   addedAt: number;
+  /** Optional reference to remote origin if imported */
+  remoteId?: string;
+  version?: string;
+}
+
+export interface RemoteApp extends Omit<MiniApp, 'addedAt' | 'id'> {
+  id: string; // Remote identifier
+}
+
+export interface RemoteRegistry {
+  version: string;
+  lastUpdated: number;
+  apps: RemoteApp[];
 }

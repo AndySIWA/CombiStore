@@ -1,23 +1,31 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { MiniApp } from '../types';
+import { MiniApp, RemoteApp, RemoteRegistry } from '../types';
 import { SAMPLE_APPS } from '../constants/defaults';
 
 const STORAGE_KEY = '@combistore_apps';
+// URL du registre de mini-apps (remplacez par votre URL de production)
+const REGISTRY_URL = 'https://raw.githubusercontent.com/username/repository/main/store.json';
 
 interface AppsContextType {
     apps: MiniApp[];
+    remoteApps: RemoteApp[];
     loading: boolean;
+    refreshingRemote: boolean;
     addApp: (app: Omit<MiniApp, 'id' | 'addedAt'>) => Promise<MiniApp>;
     removeApp: (id: string) => Promise<void>;
     updateApp: (id: string, partial: Partial<MiniApp>) => Promise<void>;
+    fetchRemoteApps: () => Promise<void>;
+    importRemoteApp: (remoteApp: RemoteApp) => Promise<void>;
 }
 
 const AppsContext = createContext<AppsContextType | undefined>(undefined);
 
 export function AppsProvider({ children }: { children: ReactNode }) {
     const [apps, setApps] = useState<MiniApp[]>([]);
+    const [remoteApps, setRemoteApps] = useState<RemoteApp[]>([]);
     const [loading, setLoading] = useState(true);
+    const [refreshingRemote, setRefreshingRemote] = useState(false);
 
     const loadApps = useCallback(async () => {
         try {
@@ -36,9 +44,50 @@ export function AppsProvider({ children }: { children: ReactNode }) {
         }
     }, []);
 
+    const fetchRemoteApps = useCallback(async () => {
+        setRefreshingRemote(true);
+        try {
+            const response = await fetch(REGISTRY_URL);
+            if (response.ok) {
+                const data: RemoteRegistry = await response.json();
+                setRemoteApps(data.apps);
+            } else {
+                throw new Error('Fallback to demos');
+            }
+        } catch (e) {
+            console.warn('[AppsContext] Registre distant non atteint, chargement des démos...');
+            // Démos pour l'efficacité de la démonstration
+            setRemoteApps([
+                {
+                    id: 'cloud_chess',
+                    name: 'Chess Online',
+                    description: 'Défiez des joueurs du monde entier au échecs.',
+                    categoryId: 'games',
+                    sourceType: 'url',
+                    source: 'https://lichess.org',
+                    icon: '♟️',
+                    version: '1.0.0'
+                },
+                {
+                    id: 'cloud_weather',
+                    name: 'Météo Locale',
+                    description: 'Prévisions précises et animations satellites.',
+                    categoryId: 'utilities',
+                    sourceType: 'url',
+                    source: 'https://www.accuweather.com',
+                    icon: '☁️',
+                    version: '1.2.0'
+                }
+            ]);
+        } finally {
+            setRefreshingRemote(false);
+        }
+    }, []);
+
     useEffect(() => {
         loadApps();
-    }, [loadApps]);
+        fetchRemoteApps();
+    }, [loadApps, fetchRemoteApps]);
 
     const saveApps = async (newApps: MiniApp[]) => {
         try {
@@ -62,6 +111,25 @@ export function AppsProvider({ children }: { children: ReactNode }) {
         return newApp;
     }, []);
 
+    const importRemoteApp = useCallback(async (remoteApp: RemoteApp) => {
+        // Vérifier si déjà importé pour éviter les doublons avec le même remoteId
+        const exists = apps.some(a => a.remoteId === remoteApp.id);
+        if (exists) return;
+
+        const newApp: MiniApp = {
+            ...remoteApp,
+            id: `app_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+            remoteId: remoteApp.id, // On garde la trace du remoteId
+            addedAt: Date.now(),
+        };
+
+        setApps(prevApps => {
+            const updated = [newApp, ...prevApps];
+            saveApps(updated);
+            return updated;
+        });
+    }, [apps]);
+
     const removeApp = useCallback(async (id: string) => {
         setApps(prevApps => {
             const updated = prevApps.filter(a => a.id !== id);
@@ -79,7 +147,17 @@ export function AppsProvider({ children }: { children: ReactNode }) {
     }, []);
 
     return (
-        <AppsContext.Provider value={{ apps, loading, addApp, removeApp, updateApp }}>
+        <AppsContext.Provider value={{
+            apps,
+            remoteApps,
+            loading,
+            refreshingRemote,
+            addApp,
+            removeApp,
+            updateApp,
+            fetchRemoteApps,
+            importRemoteApp
+        }}>
             {children}
         </AppsContext.Provider>
     );

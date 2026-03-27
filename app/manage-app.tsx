@@ -7,7 +7,7 @@ import {
 import { router, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { COLORS, RADII, SPACING, FONT, GRADIENTS } from '../src/constants/theme';
 import { useApps } from '../src/context/AppsContext';
 import { useCategories } from '../src/context/CategoriesContext';
@@ -79,17 +79,51 @@ export default function ManageAppScreen() {
     const handlePickHtml = async () => {
         try {
             const result = await DocumentPicker.getDocumentAsync({
-                type: ['text/html', 'application/octet-stream', '*/*'],
+                type: ['text/html', 'application/octet-stream', 'text/plain'],
                 copyToCacheDirectory: true,
             });
-            if (result.canceled) return;
+
+            if (result.canceled || !result.assets || result.assets.length === 0) return;
+
             const file = result.assets[0];
-            setHtmlFileName(file.name ?? 'fichier.html');
-            if (!name) setName(file.name?.replace('.html', '') ?? '');
-            const content = await FileSystem.readAsStringAsync(file.uri);
+            const fileName = file.name ?? 'fichier.html';
+
+            // Mise à jour de l'interface immédiatement pour montrer le fichier sélectionné
+            setHtmlFileName(fileName);
+            if (!name) setName(fileName.replace('.html', ''));
+
+            let content = '';
+
+            try {
+                // Tentative 1 : lecture normale (UTF8 par défaut)
+                console.log('[HTML Import] Tentative lecture URI:', file.uri);
+                content = await FileSystem.readAsStringAsync(file.uri, {
+                    encoding: 'utf8',
+                });
+            } catch (err) {
+                console.log('[HTML Import] 1ère tentative échouée:', err);
+                // Tentative 2 : Si c'est un chemin file:// avec des espaces encodés, on décode
+                const decodedUri = file.uri.startsWith('file://') ? decodeURIComponent(file.uri) : file.uri;
+                console.log('[HTML Import] Tentative lecture URI décodée:', decodedUri);
+                content = await FileSystem.readAsStringAsync(decodedUri, {
+                    encoding: 'utf8',
+                });
+            }
+
+            if (!content && content !== '') {
+                throw new Error("Le contenu du fichier est inaccessible.");
+            }
+
             setHtmlContent(content);
         } catch (e) {
-            Alert.alert('Erreur', 'Impossible de lire ce fichier.');
+            console.error('Erreur lors de la sélection du HTML:', e);
+            Alert.alert(
+                'Erreur de lecture',
+                `Impossible de lire ce fichier.\n\nDétails : ${e instanceof Error ? e.message : 'Erreur inconnue'}`
+            );
+            // Reset en cas d'erreur
+            setHtmlFileName('');
+            setHtmlContent('');
         }
     };
 
