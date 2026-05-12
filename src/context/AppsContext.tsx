@@ -1,11 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { MiniApp, RemoteApp, RemoteRegistry } from '../types';
+import { MiniApp, RemoteApp } from '../types';
 import { SAMPLE_APPS } from '../constants/defaults';
+import { client, getRemoteAppsQuery } from '../lib/sanity';
 
 const STORAGE_KEY = '@combistore_apps';
-// URL du registre de mini-apps (remplacez par votre URL de production)
-const REGISTRY_URL = 'https://raw.githubusercontent.com/username/repository/main/store.json';
 
 interface AppsContextType {
     apps: MiniApp[];
@@ -47,16 +46,16 @@ export function AppsProvider({ children }: { children: ReactNode }) {
     const fetchRemoteApps = useCallback(async () => {
         setRefreshingRemote(true);
         try {
-            const response = await fetch(REGISTRY_URL);
-            if (response.ok) {
-                const data: RemoteRegistry = await response.json();
-                setRemoteApps(data.apps);
+            const data = await client.fetch(getRemoteAppsQuery);
+            if (data && data.length > 0) {
+                setRemoteApps(data);
             } else {
-                throw new Error('Fallback to demos');
+                //alert('Aucune app trouvée dans Sanity');
+                throw new Error('Aucune app trouvée dans Sanity');
             }
         } catch (e) {
-            console.warn('[AppsContext] Registre distant non atteint, chargement des démos...');
-            // Démos pour l'efficacité de la démonstration
+            console.warn('[AppsContext] Erreur Sanity, chargement des démos...', e);
+            // Démos en fallback
             setRemoteApps([
                 {
                     id: 'cloud_chess',

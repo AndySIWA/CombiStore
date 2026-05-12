@@ -23,9 +23,14 @@ export default function StoreScreen() {
     const [searchFocused, setSearchFocused] = useState(false);
 
     const handleImport = async (app: MiniApp | RemoteApp) => {
+        const isLocal = 'addedAt' in app;
+        if (isLocal) {
+            router.push(`/viewer/${app.id}`);
+            return;
+        }
+
         const isInstalled = apps.some(a => a.remoteId === app.id);
         if (isInstalled) {
-            // Si déjà installé, on l'ouvre simplement
             const installedApp = apps.find(a => a.remoteId === app.id);
             if (installedApp) router.push(`/viewer/${installedApp.id}`);
             return;
@@ -44,9 +49,17 @@ export default function StoreScreen() {
         );
     };
 
-    const isAppInstalled = (remoteId: string) => apps.some(a => a.remoteId === remoteId);
+    const isAppInstalled = (app: MiniApp | RemoteApp) => {
+        if ('addedAt' in app) return true;
+        return apps.some(a => a.remoteId === app.id);
+    };
 
-    const filtered = remoteApps.filter(app => {
+    const combinedApps = [
+        ...apps,
+        ...remoteApps.filter(remote => !apps.some(local => local.remoteId === remote.id)),
+    ];
+
+    const filtered = combinedApps.filter(app => {
         const matchCat = activeCategory === ALL_CAT_ID || app.categoryId === activeCategory;
         const matchSearch = search.length === 0 ||
             app.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -81,7 +94,7 @@ export default function StoreScreen() {
                             />
                         </View>
                         <View>
-                            <Text style={[styles.headerTitle, { color: theme.text }]}>Découvrir</Text>
+                            <Text style={[styles.headerTitle, { color: theme.text }]}>Explorer</Text>
                             <Text style={[styles.headerSlogan, { color: theme.textSecondary }]}>Nouveautés du Cloud</Text>
                         </View>
                     </TouchableOpacity>
@@ -193,7 +206,7 @@ export default function StoreScreen() {
                         app={item as MiniApp}
                         category={getCategory(item.categoryId)}
                         onPress={() => handleImport(item)}
-                        isInstalled={isAppInstalled(item.id)}
+                        isInstalled={isAppInstalled(item)}
                     />
                 )}
             />

@@ -49,7 +49,7 @@ export default function TabLayout() {
             <Tabs.Screen
                 name="index"
                 options={{
-                    title: 'Découvrir',
+                    title: 'Explorer',
                     tabBarIcon: ({ focused }) => <TabIcon emoji="🚀" focused={focused} />,
                 }}
             />

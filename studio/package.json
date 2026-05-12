@@ -1,0 +1,18 @@
+{
+  "name": "combistore-studio",
+  "private": true,
+  "version": "1.0.0",
+  "main": "package.json",
+  "devDependencies": {
+    "typescript": "^5.1.6"
+  },
+  "dependencies": {
+    "@sanity/vision": "^3.0.0",
+    "lucide-react": "^0.263.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "sanity": "^3.99.0",
+    "sanity-plugin-emoji": "^1.1.0",
+    "styled-components": "^6.1.15"
+  }
+}

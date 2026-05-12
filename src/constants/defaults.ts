@@ -4,9 +4,9 @@ export const DEFAULT_CATEGORIES: Category[] = [
     { id: 'all', name: 'Tout', color: '#7C3AED', icon: '🌐' },
     { id: 'games', name: 'Jeux', color: '#EF4444', icon: '🎮' },
     { id: 'tools', name: 'Outils', color: '#3B82F6', icon: '🔧' },
+    { id: 'utilities', name: 'Utilitaires', color: '#6366F1', icon: '⚡' },
     { id: 'learning', name: 'Apprentissage', color: '#10B981', icon: '📚' },
     { id: 'entertainment', name: 'Divertissement', color: '#F59E0B', icon: '🎬' },
-    { id: 'utilities', name: 'Utilitaires', color: '#6366F1', icon: '⚡' },
 ];
 
 export const SAMPLE_APPS: MiniApp[] = [
