@@ -13,10 +13,11 @@ interface AppCardProps {
 }
 
 export const AppCard = ({ app, category, onPress, onLongPress, isInstalled }: AppCardProps) => {
-    const { theme } = useTheme();
+    const { theme, mode } = useTheme();
     const isFeatured = false; // logic for featured can be added later
 
     const catColor = category?.color || theme.accent;
+    const badgeColor = mode === 'dark' ? '#4B5563' : '#D1D5DB';
 
     return (
         <TouchableOpacity
@@ -30,10 +31,10 @@ export const AppCard = ({ app, category, onPress, onLongPress, isInstalled }: Ap
                     <View style={styles.glassHighlight} />
 
                     <View style={isFeatured ? styles.contentRowFeatured : styles.contentDefault}>
-                        {/* Status Badge */}
+                        {/* Status Icon */}
                         {isInstalled && (
-                            <View style={[styles.installedBadge, { backgroundColor: theme.accent + '22', borderColor: theme.accent + '44' }]}>
-                                <Text style={[styles.installedText, { color: theme.accent }]}>Installée</Text>
+                            <View style={[styles.installedIcon, { backgroundColor: badgeColor }]}>
+                                <Text style={styles.installedCheckmark}>✓</Text>
                             </View>
                         )}
 
@@ -102,23 +103,22 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 100,
         borderBottomRightRadius: 100,
     },
-    installedBadge: {
+    installedIcon: {
         position: 'absolute',
-        top: 0,
-        right: 0,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderBottomLeftRadius: 12,
-        borderWidth: 1,
-        borderTopWidth: 0,
-        borderRightWidth: 0,
+        top: 8,
+        right: 8,
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
         zIndex: 10,
     },
-    installedText: {
+    installedCheckmark: {
         fontFamily: FONT.bold,
-        fontSize: 9,
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
+        fontSize: 14,
+        color: COLORS.white,
+        lineHeight: 16,
     },
     contentDefault: {
         flex: 1,

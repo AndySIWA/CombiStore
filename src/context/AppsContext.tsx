@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, Rea
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MiniApp, RemoteApp } from '../types';
 import { SAMPLE_APPS } from '../constants/defaults';
+import { DEMO_APPS } from '../constants/demoApps';
 import { client, getRemoteAppsQuery } from '../lib/sanity';
 
 const STORAGE_KEY = '@combistore_apps';
@@ -55,29 +56,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
             }
         } catch (e) {
             console.warn('[AppsContext] Erreur Sanity, chargement des démos...', e);
-            // Démos en fallback
-            setRemoteApps([
-                {
-                    id: 'cloud_chess',
-                    name: 'Chess Online',
-                    description: 'Défiez des joueurs du monde entier au échecs.',
-                    categoryId: 'games',
-                    sourceType: 'url',
-                    source: 'https://lichess.org',
-                    icon: '♟️',
-                    version: '1.0.0'
-                },
-                {
-                    id: 'cloud_weather',
-                    name: 'Météo Locale',
-                    description: 'Prévisions précises et animations satellites.',
-                    categoryId: 'utilities',
-                    sourceType: 'url',
-                    source: 'https://www.accuweather.com',
-                    icon: '☁️',
-                    version: '1.2.0'
-                }
-            ]);
+            setRemoteApps(DEMO_APPS);
         } finally {
             setRefreshingRemote(false);
         }

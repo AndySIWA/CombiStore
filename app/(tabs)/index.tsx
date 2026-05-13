@@ -142,11 +142,10 @@ export default function StoreScreen() {
                 <FlatList
                     horizontal={true}
                     showsHorizontalScrollIndicator={false}
-                    data={categories.map(c =>
-                        c.id === ALL_CAT_ID
-                            ? { ...c, name: 'Toutes', icon: '🌟', color: theme.accent }
-                            : c
-                    )}
+                    data={[
+                        { id: ALL_CAT_ID, name: 'Toutes', icon: '🌟', color: theme.accent },
+                        ...categories.filter(c => c.id !== ALL_CAT_ID)
+                    ]}
                     keyExtractor={c => c.id}
                     contentContainerStyle={styles.pills}
                     renderItem={({ item: cat }) => {
