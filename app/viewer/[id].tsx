@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import {
-    View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Platform,
+    View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Platform, Linking,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { COLORS, FONT, RADII, SPACING } from '../../src/constants/theme';
@@ -18,7 +18,20 @@ export default function ViewerScreen() {
     const app = apps.find(a => a.id === id) || remoteApps.find(a => a.id === id);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
+    const [blocked, setBlocked] = useState(false);
     const webViewRef = useRef<any>(null);
+
+    const openExternal = async () => {
+        if (!app || app.sourceType !== 'url') return;
+        const url = app.source.trim();
+        if (!url) return;
+
+        if (Platform.OS === 'web' && typeof window !== 'undefined') {
+            window.open(url, '_blank', 'noopener,noreferrer');
+            return;
+        }
+        await Linking.openURL(url);
+    };
 
     // Fade in top bar or maintain as minimal overlay
     if (!app) {
@@ -43,13 +56,23 @@ export default function ViewerScreen() {
                 <Text style={styles.appTitle} numberOfLines={1}>{app.name}</Text>
             </View>
 
-            {Platform.OS !== 'web' && app.sourceType === 'url' && (
-                <TouchableOpacity
-                    style={styles.reloadBtn}
-                    onPress={() => webViewRef.current?.reload()}
-                >
-                    <Text style={styles.reloadIcon}>↻</Text>
-                </TouchableOpacity>
+            {app.sourceType === 'url' && (
+                <>
+                    {Platform.OS !== 'web' && (
+                        <TouchableOpacity
+                            style={styles.reloadBtn}
+                            onPress={() => webViewRef.current?.reload()}
+                        >
+                            <Text style={styles.reloadIcon}>↻</Text>
+                        </TouchableOpacity>
+                    )}
+                    <TouchableOpacity
+                        style={[styles.reloadBtn, styles.externalBtn]}
+                        onPress={openExternal}
+                    >
+                        <Text style={styles.reloadIcon}>🌐</Text>
+                    </TouchableOpacity>
+                </>
             )}
         </View>
     );
@@ -67,7 +90,7 @@ export default function ViewerScreen() {
                     style={{ flex: 1, border: 'none', width: '100%', height: '100%' }}
                     title={app.name}
                     onLoad={() => setLoading(false)}
-                    onError={() => { setLoading(false); setError(true); }}
+                    onError={() => { setLoading(false); setError(true); setBlocked(true); }}
                     sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
                 />
             </View>
@@ -87,11 +110,16 @@ export default function ViewerScreen() {
                     <Text style={styles.errorIcon}>⚠️</Text>
                     <Text style={styles.errorText}>Impossible de charger cette app.</Text>
                     <TouchableOpacity
-                        onPress={() => { setError(false); setLoading(true); webViewRef.current?.reload(); }}
+                        onPress={() => { setError(false); setLoading(true); setBlocked(false); webViewRef.current?.reload(); }}
                         style={styles.retryBtn}
                     >
                         <Text style={styles.retryText}>Réessayer</Text>
                     </TouchableOpacity>
+                    {app.sourceType === 'url' && (
+                        <TouchableOpacity onPress={openExternal} style={[styles.openExternalBtn, { borderWidth: 1, borderColor: COLORS.border }]}> 
+                            <Text style={styles.openExternalText}>Ouvrir dans le navigateur</Text>
+                        </TouchableOpacity>
+                    )}
                 </View>
             ) : (
                 <View style={{ flex: 1 }}>
@@ -233,5 +261,37 @@ const styles = StyleSheet.create({
         fontFamily: FONT.bold,
         fontSize: 14,
         color: COLORS.white,
+    },
+    openExternalBtn: {
+        marginTop: 12,
+        backgroundColor: COLORS.surface,
+        borderColor: COLORS.border,
+        borderWidth: 1,
+    },
+    openExternalText: {
+        fontFamily: FONT.bold,
+        fontSize: 14,
+        color: COLORS.accent,
+    },
+    externalBtn: {
+        marginLeft: 10,
+        backgroundColor: 'rgba(255,255,255,0.08)',
+    },
+    blockedInfo: {
+        position: 'absolute',
+        bottom: 24,
+        left: 24,
+        right: 24,
+        padding: 14,
+        borderRadius: 18,
+        backgroundColor: 'rgba(255,255,255,0.9)',
+        alignItems: 'center',
+    },
+    blockedText: {
+        fontFamily: FONT.medium,
+        fontSize: 14,
+        color: '#111',
+        marginBottom: 10,
+        textAlign: 'center',
     },
 });
