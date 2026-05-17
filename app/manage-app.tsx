@@ -45,7 +45,7 @@ export default function ManageAppScreen() {
                 setName(app.name);
                 setDescription(app.description);
                 setCategoryId(app.categoryId);
-                setIcon(app.icon);
+                setIcon(app.icon ?? '🌐');
                 setTab(app.sourceType as TabSource);
                 if (app.sourceType === 'url') {
                     setUrl(app.source);
@@ -149,13 +149,7 @@ export default function ManageAppScreen() {
                 categoryId,
                 sourceType: tab,
                 source: tab === 'url' ? url.trim() : htmlContent,
-                icon,
-            };
-
-            if (isEditing) {
-                await updateApp(id!, appData);
-            } else {
-                await addApp(appData);
+                    icon: icon.trim() || '🌐',
             }
             router.back();
         } catch (e) {

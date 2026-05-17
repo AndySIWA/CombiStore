@@ -76,8 +76,10 @@ export function AppsProvider({ children }: { children: ReactNode }) {
     };
 
     const addApp = useCallback(async (app: Omit<MiniApp, 'id' | 'addedAt'>) => {
+        const iconValue = app.icon?.trim() || '🌐';
         const newApp: MiniApp = {
             ...app,
+            icon: iconValue,
             id: `app_${Date.now()}_${Math.random().toString(36).slice(2)}`,
             addedAt: Date.now(),
         };
@@ -94,8 +96,10 @@ export function AppsProvider({ children }: { children: ReactNode }) {
         const exists = apps.some(a => a.remoteId === remoteApp.id);
         if (exists) return;
 
+        const iconValue = remoteApp.icon?.trim() || '🌐';
         const newApp: MiniApp = {
             ...remoteApp,
+            icon: iconValue,
             id: `app_${Date.now()}_${Math.random().toString(36).slice(2)}`,
             remoteId: remoteApp.id, // On garde la trace du remoteId
             addedAt: Date.now(),

@@ -15,6 +15,9 @@ interface AppCardProps {
 export const AppCard = ({ app, category, onPress, onLongPress, isInstalled }: AppCardProps) => {
     const { theme, mode } = useTheme();
     const isFeatured = false; // logic for featured can be added later
+    const iconValue = typeof app.icon === 'string' ? app.icon : '';
+    const displayIcon = iconValue || '❔';
+    const isImageIcon = iconValue.startsWith('http');
 
     const catColor = category?.color || theme.accent;
     const badgeColor = mode === 'dark' ? '#4B5563' : '#D1D5DB';
@@ -44,14 +47,14 @@ export const AppCard = ({ app, category, onPress, onLongPress, isInstalled }: Ap
                             { backgroundColor: catColor + '15', borderColor: catColor + '30' },
                             isFeatured && styles.iconBubbleFeatured
                         ]}>
-                            {app.icon.startsWith('http') ? (
+                            {isImageIcon ? (
                                 <Image
-                                    source={{ uri: app.icon }}
+                                    source={{ uri: iconValue }}
                                     style={[styles.iconImage, isFeatured && styles.iconImageFeatured]}
                                     resizeMode="contain"
                                 />
                             ) : (
-                                <Text style={[styles.iconText, isFeatured && styles.iconTextFeatured]}>{app.icon}</Text>
+                                <Text style={[styles.iconText, isFeatured && styles.iconTextFeatured]}>{displayIcon}</Text>
                             )}
                         </View>
 

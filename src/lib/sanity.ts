@@ -14,7 +14,7 @@ export const getRemoteAppsQuery = `*[_type == "miniApp"] {
   "categoryId": category->name,
   sourceType,
   source,
-  icon,
+  "icon": coalesce(icon, "🌐"),
   version,
   tags,
   featured,
