@@ -10,9 +10,11 @@ interface AppCardProps {
     onPress: () => void;
     onLongPress?: () => void;
     isInstalled?: boolean;
+    actionLabel?: string;
+    onAction?: () => void;
 }
 
-export const AppCard = ({ app, category, onPress, onLongPress, isInstalled }: AppCardProps) => {
+export const AppCard = ({ app, category, onPress, onLongPress, isInstalled, actionLabel, onAction }: AppCardProps) => {
     const { theme, mode } = useTheme();
     const isFeatured = false; // logic for featured can be added later
     const iconValue = typeof app.icon === 'string' ? app.icon : '';
@@ -67,6 +69,11 @@ export const AppCard = ({ app, category, onPress, onLongPress, isInstalled }: Ap
                         </View>
                     </View>
 
+                    {actionLabel && onAction && (
+                        <TouchableOpacity onPress={onAction} style={[styles.actionBtn, { borderColor: theme.border, backgroundColor: theme.surface }]} activeOpacity={0.8}>
+                            <Text style={[styles.actionBtnText, { color: theme.text }]}>{actionLabel}</Text>
+                        </TouchableOpacity>
+                    )}
                 </View>
             </View>
         </TouchableOpacity>
@@ -174,5 +181,16 @@ const styles = StyleSheet.create({
         fontSize: 13,
         lineHeight: 18,
         opacity: 0.85,
+    },
+    actionBtn: {
+        marginTop: 10,
+        paddingVertical: 8,
+        borderRadius: 14,
+        borderWidth: 1,
+        alignItems: 'center',
+    },
+    actionBtnText: {
+        fontFamily: FONT.bold,
+        fontSize: 13,
     },
 });

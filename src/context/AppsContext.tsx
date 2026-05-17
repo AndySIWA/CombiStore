@@ -16,7 +16,7 @@ interface AppsContextType {
     removeApp: (id: string) => Promise<void>;
     updateApp: (id: string, partial: Partial<MiniApp>) => Promise<void>;
     fetchRemoteApps: () => Promise<void>;
-    importRemoteApp: (remoteApp: RemoteApp) => Promise<void>;
+    importRemoteApp: (remoteApp: RemoteApp) => Promise<MiniApp | null>;
 }
 
 const AppsContext = createContext<AppsContextType | undefined>(undefined);
@@ -94,7 +94,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
     const importRemoteApp = useCallback(async (remoteApp: RemoteApp) => {
         // Vérifier si déjà importé pour éviter les doublons avec le même remoteId
         const exists = apps.some(a => a.remoteId === remoteApp.id);
-        if (exists) return;
+        if (exists) return null;
 
         const iconValue = remoteApp.icon?.trim() || '🌐';
         const newApp: MiniApp = {
@@ -110,6 +110,8 @@ export function AppsProvider({ children }: { children: ReactNode }) {
             saveApps(updated);
             return updated;
         });
+
+        return newApp;
     }, [apps]);
 
     const removeApp = useCallback(async (id: string) => {

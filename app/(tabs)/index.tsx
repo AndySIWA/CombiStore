@@ -22,7 +22,7 @@ export default function StoreScreen() {
     const [activeCategory, setActiveCategory] = useState(ALL_CAT_ID);
     const [searchFocused, setSearchFocused] = useState(false);
 
-    const handleImport = async (app: MiniApp | RemoteApp) => {
+    const handleOpen = (app: MiniApp | RemoteApp) => {
         const isLocal = 'addedAt' in app;
         if (isLocal) {
             router.push(`/viewer/${app.id}`);
@@ -36,17 +36,11 @@ export default function StoreScreen() {
             return;
         }
 
-        Alert.alert(
-            'Importer l\'application',
-            `Voulez-vous ajouter "${app.name}" à votre collection ?`,
-            [
-                { text: 'Plus tard', style: 'cancel' },
-                {
-                    text: 'Ajouter',
-                    onPress: () => importRemoteApp(app as RemoteApp)
-                },
-            ]
-        );
+        router.push(`/viewer/${app.id}`);
+    };
+
+    const handleInstall = async (app: RemoteApp) => {
+        await importRemoteApp(app);
     };
 
     const isAppInstalled = (app: MiniApp | RemoteApp) => {
@@ -200,14 +194,20 @@ export default function StoreScreen() {
                         </Text>
                     </View>
                 }
-                renderItem={({ item }) => (
-                    <AppCard
-                        app={item as MiniApp}
-                        category={getCategory(item.categoryId)}
-                        onPress={() => handleImport(item)}
-                        isInstalled={isAppInstalled(item)}
-                    />
-                )}
+                renderItem={({ item }) => {
+                    const installed = isAppInstalled(item);
+                    const isRemote = !('addedAt' in item);
+                    return (
+                        <AppCard
+                            app={item as MiniApp}
+                            category={getCategory(item.categoryId)}
+                            onPress={() => handleOpen(item)}
+                            isInstalled={installed}
+                            actionLabel={isRemote && !installed ? 'Ajouter' : undefined}
+                            onAction={isRemote && !installed ? () => handleInstall(item as RemoteApp) : undefined}
+                        />
+                    );
+                }}
             />
         </View>
     );

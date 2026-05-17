@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { COLORS, FONT, RADII, SPACING } from '../../src/constants/theme';
-import { useApps } from '../../src/hooks/useApps';
+import { useApps } from '../../src/context/AppsContext';
 
 // Platform-conditional import
 let WebView: any = null;
@@ -14,8 +14,8 @@ if (Platform.OS !== 'web') {
 
 export default function ViewerScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
-    const { apps } = useApps();
-    const app = apps.find(a => a.id === id);
+    const { apps, remoteApps } = useApps();
+    const app = apps.find(a => a.id === id) || remoteApps.find(a => a.id === id);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
     const webViewRef = useRef<any>(null);
