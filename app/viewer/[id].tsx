@@ -33,6 +33,15 @@ export default function ViewerScreen() {
         await Linking.openURL(url);
     };
 
+    // Open URL apps in new tab on web
+    React.useEffect(() => {
+        if (Platform.OS === 'web' && app?.sourceType === 'url' && typeof window !== 'undefined') {
+            window.open(app.source, '_blank', 'noopener,noreferrer');
+            // Return to previous page after opening new tab
+            setTimeout(() => router.back(), 500);
+        }
+    }, [app?.source, app?.sourceType]);
+
     // Fade in top bar or maintain as minimal overlay
     if (!app) {
         return (
@@ -77,16 +86,24 @@ export default function ViewerScreen() {
         </View>
     );
 
-    // Web platform: use iframe
+    // Web platform: redirect URL apps, display HTML apps in iframe
     if (Platform.OS === 'web') {
-        const iframeSrc = app.sourceType === 'url'
-            ? app.source
-            : `data:text/html;charset=utf-8,${encodeURIComponent(app.source)}`;
+        if (app.sourceType === 'url') {
+            return (
+                <View style={styles.center}>
+                    <Text style={styles.loadingText}>Redirection vers {app.name}...</Text>
+                    <ActivityIndicator size="large" color={COLORS.accent} style={{ marginTop: 20 }} />
+                </View>
+            );
+        }
+
+        // HTML content: display in iframe
+        const htmlDataUrl = `data:text/html;charset=utf-8,${encodeURIComponent(app.source)}`;
         return (
             <View style={styles.container}>
                 {topBar}
                 <iframe
-                    src={iframeSrc}
+                    src={htmlDataUrl}
                     style={{ flex: 1, border: 'none', width: '100%', height: '100%' }}
                     title={app.name}
                     onLoad={() => setLoading(false)}
