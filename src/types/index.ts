@@ -20,6 +20,7 @@ export interface MiniApp {
   /** Optional reference to remote origin if imported */
   remoteId?: string;
   version?: string;
+  lastUpdated?: string;
 }
 
 export interface RemoteApp extends Omit<MiniApp, 'addedAt' | 'id'> {

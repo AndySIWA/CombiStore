@@ -7,6 +7,29 @@ import { client, getRemoteAppsQuery } from '../lib/sanity';
 
 const STORAGE_KEY = '@combistore_apps';
 
+const syncImportedApps = (localApps: MiniApp[], remoteApps: RemoteApp[]) => {
+    const remoteById = new Map(remoteApps.map(app => [app.id, app]));
+
+    return localApps.map(localApp => {
+        if (!localApp.remoteId) return localApp;
+
+        const remoteApp = remoteById.get(localApp.remoteId);
+        if (!remoteApp) return localApp;
+
+        return {
+            ...localApp,
+            name: remoteApp.name,
+            description: remoteApp.description,
+            categoryId: remoteApp.categoryId,
+            sourceType: remoteApp.sourceType,
+            source: remoteApp.source,
+            icon: remoteApp.icon?.trim() || localApp.icon,
+            version: remoteApp.version,
+            lastUpdated: remoteApp.lastUpdated,
+        };
+    });
+};
+
 interface AppsContextType {
     apps: MiniApp[];
     remoteApps: RemoteApp[];
@@ -31,25 +54,34 @@ export function AppsProvider({ children }: { children: ReactNode }) {
         try {
             const stored = await AsyncStorage.getItem(STORAGE_KEY);
             if (stored) {
-                setApps(JSON.parse(stored));
+                const parsedApps = JSON.parse(stored) as MiniApp[];
+                setApps(parsedApps);
+                return parsedApps;
             } else {
                 await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(SAMPLE_APPS));
                 setApps(SAMPLE_APPS);
+                return SAMPLE_APPS;
             }
         } catch (e) {
             console.error('Error loading apps:', e);
             setApps(SAMPLE_APPS);
+            return SAMPLE_APPS;
         } finally {
             setLoading(false);
         }
     }, []);
 
-    const fetchRemoteApps = useCallback(async () => {
+    const fetchRemoteApps = useCallback(async (baseApps?: MiniApp[]) => {
         setRefreshingRemote(true);
         try {
-            const data = await client.fetch(getRemoteAppsQuery);
+            const data = await client.fetch<RemoteApp[]>(getRemoteAppsQuery);
             if (data && data.length > 0) {
                 setRemoteApps(data);
+                setApps(prevApps => {
+                    const updated = syncImportedApps(baseApps ?? prevApps, data);
+                    saveApps(updated);
+                    return updated;
+                });
             } else {
                 //alert('Aucune app trouvée dans Sanity');
                 throw new Error('Aucune app trouvée dans Sanity');
@@ -63,8 +95,12 @@ export function AppsProvider({ children }: { children: ReactNode }) {
     }, []);
 
     useEffect(() => {
-        loadApps();
-        fetchRemoteApps();
+        const initializeApps = async () => {
+            const loadedApps = await loadApps();
+            await fetchRemoteApps(loadedApps);
+        };
+
+        initializeApps();
     }, [loadApps, fetchRemoteApps]);
 
     const saveApps = async (newApps: MiniApp[]) => {

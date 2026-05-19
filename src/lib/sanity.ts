@@ -3,7 +3,7 @@ import {createClient} from '@sanity/client'
 export const client = createClient({
   projectId: process.env.EXPO_PUBLIC_SANITY_PROJECT_ID || '7a6tocy4',
   dataset: process.env.EXPO_PUBLIC_SANITY_DATASET || 'production',
-  useCdn: true, // `false` si vous voulez les données les plus fraîches possibles
+  useCdn: false,
   apiVersion: '2024-03-01', // Utilisez la date du jour
 })
 
@@ -19,7 +19,7 @@ export const getRemoteAppsQuery = `*[_type == "miniApp"] {
   tags,
   featured,
   author,
-  lastUpdated
+  "lastUpdated": coalesce(lastUpdated, _updatedAt)
 } | order(lastUpdated desc)`
 
 export const getCategoriesQuery = `*[_type == "category"] {
@@ -42,5 +42,5 @@ export const getFeaturedAppsQuery = `*[_type == "miniApp" && featured == true] {
   version,
   tags,
   author,
-  lastUpdated
+  "lastUpdated": coalesce(lastUpdated, _updatedAt)
 } | order(lastUpdated desc)`
