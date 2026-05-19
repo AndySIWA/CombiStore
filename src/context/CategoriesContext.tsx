@@ -16,6 +16,20 @@ interface CategoriesContextType {
 
 const CategoriesContext = createContext<CategoriesContextType | undefined>(undefined);
 
+type SanityCategory = {
+    id?: string;
+    name?: string | { current?: string };
+    title?: string;
+    color?: string;
+    icon?: string;
+};
+
+const getSanityCategoryId = (cat: SanityCategory) => {
+    if (typeof cat.name === 'string') return cat.name;
+    if (cat.name?.current) return cat.name.current;
+    return cat.id;
+};
+
 export function CategoriesProvider({ children }: { children: ReactNode }) {
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
@@ -23,15 +37,19 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
     const loadCategories = useCallback(async () => {
         try {
             // Récupérer les catégories de Sanity
-            const remoteCategories = await client.fetch(getCategoriesQuery);
+            const remoteCategories = await client.fetch<SanityCategory[]>(getCategoriesQuery);
 
             // Convertir les catégories Sanity au format local
-            const sanityCategories: Category[] = remoteCategories.map(cat => ({
-                id: cat.name, // Utiliser name.current comme id
-                name: cat.title,
-                color: cat.color,
-                icon: cat.icon,
-            }));
+            const sanityCategories: Category[] = remoteCategories
+                .map(cat => ({
+                    id: getSanityCategoryId(cat),
+                    name: cat.title,
+                    color: cat.color,
+                    icon: cat.icon,
+                }))
+                .filter((cat): cat is Category =>
+                    Boolean(cat.id && cat.name && cat.color && cat.icon)
+                );
 
             // Fusionner avec les catégories locales (en donnant priorité à Sanity)
             const localCategories = DEFAULT_CATEGORIES.filter(cat =>

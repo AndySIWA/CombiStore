@@ -13,6 +13,7 @@ import { useApps } from '../src/context/AppsContext';
 import { useCategories } from '../src/context/CategoriesContext';
 import { useTheme } from '../src/context/ThemeContext';
 import { CATEGORY_ICONS } from '../src/constants/defaults';
+import { MiniApp } from '../src/types';
 
 type TabSource = 'url' | 'html';
 
@@ -143,13 +144,18 @@ export default function ManageAppScreen() {
         if (err) { Alert.alert('Erreur', err); return; }
         setSaving(true);
         try {
-            const appData = {
+            const appData: Omit<MiniApp, 'id' | 'addedAt'> = {
                 name: name.trim(),
                 description: description.trim() || `Mini app ${tab === 'url' ? 'en ligne' : 'locale'}`,
                 categoryId,
                 sourceType: tab,
                 source: tab === 'url' ? url.trim() : htmlContent,
-                    icon: icon.trim() || '🌐',
+                icon: icon.trim() || '🌐',
+            };
+            if (isEditing && id) {
+                await updateApp(id, appData);
+            } else {
+                await addApp(appData);
             }
             router.back();
         } catch (e) {
