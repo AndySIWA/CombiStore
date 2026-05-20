@@ -25,9 +25,12 @@ type SanityCategory = {
 };
 
 const getSanityCategoryId = (cat: SanityCategory) => {
-    if (typeof cat.name === 'string') return cat.name;
-    if (cat.name?.current) return cat.name.current;
-    return cat.id;
+    let id: string | undefined;
+    if (typeof cat.name === 'string') id = cat.name;
+    else if (cat.name?.current) id = cat.name.current;
+    else id = cat.id;
+
+    return id?.toLowerCase() || cat.id;
 };
 
 export function CategoriesProvider({ children }: { children: ReactNode }) {
@@ -52,8 +55,9 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
                 );
 
             // Fusionner avec les catégories locales (en donnant priorité à Sanity)
+            const sanityIds = new Set(sanityCategories.map(cat => cat.id.toLowerCase()));
             const localCategories = DEFAULT_CATEGORIES.filter(cat =>
-                !sanityCategories.some(sanityCat => sanityCat.id === cat.id)
+                !sanityIds.has(cat.id.toLowerCase())
             );
 
             const allCategories = [...sanityCategories, ...localCategories];
