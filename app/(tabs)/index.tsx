@@ -236,15 +236,15 @@ const styles = StyleSheet.create({
         opacity: 0.3,
     },
     header: {
-        paddingTop: 64,
+        paddingTop: 48,
         paddingHorizontal: 24,
-        paddingBottom: SPACING.lg,
+        paddingBottom: SPACING.md,
     },
     headerRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 24,
+        marginBottom: 12,
     },
     headerLeft: {
         flexDirection: 'row',
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     },
     headerTitle: {
         fontFamily: FONT.bold,
-        fontSize: 28,
+        fontSize: 24,
         letterSpacing: -0.8,
     },
     headerSlogan: {
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         paddingHorizontal: 16,
         borderWidth: 1,
-        height: 50,
+        height: 44,
     },
     searchIcon: {
         fontSize: 18,
@@ -311,29 +311,29 @@ const styles = StyleSheet.create({
         paddingLeft: 10,
     },
     pillsContainer: {
-        marginBottom: 8,
+        marginBottom: 4,
     },
     pills: {
         paddingHorizontal: 24,
-        paddingVertical: 12,
+        paddingVertical: 8,
         gap: 10,
     },
     pill: {
-        paddingHorizontal: 18,
-        paddingVertical: 10,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
         borderRadius: 20,
         borderWidth: 1,
     },
     pillText: {
         fontFamily: FONT.semiBold,
-        fontSize: 13,
+        fontSize: 12,
     },
     statsBar: {
-        paddingVertical: 16,
+        paddingVertical: 8,
         flexDirection: 'row',
         alignItems: 'center',
         gap: 16,
-        marginBottom: 8,
+        marginBottom: 4,
     },
     countText: {
         fontFamily: FONT.medium,
