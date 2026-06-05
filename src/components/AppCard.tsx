@@ -14,9 +14,19 @@ interface AppCardProps {
     onAction?: () => void;
 }
 
+/**
+ * Static AppCard (Original Non-Animated Version)
+ * 
+ * ⚠️ For new implementations, use AnimatedCard instead!
+ * 
+ * This component is kept for compatibility but AnimatedCard is recommended
+ * as it provides superior UX with entrance animations and press feedback.
+ * 
+ * @see AnimatedCard for the enhanced animated version
+ */
 export const AppCard = ({ app, category, onPress, onLongPress, isInstalled, actionLabel, onAction }: AppCardProps) => {
     const { theme, mode } = useTheme();
-    const isFeatured = false; // logic for featured can be added later
+    const isFeatured = false;
     const iconValue = typeof app.icon === 'string' ? app.icon : '';
     const displayIcon = iconValue || '❔';
     const isImageIcon = iconValue.startsWith('http');

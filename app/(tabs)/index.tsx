@@ -9,8 +9,9 @@ import { COLORS, SPACING, FONT, GRADIENTS } from '../../src/constants/theme';
 import { useApps } from '../../src/context/AppsContext';
 import { useCategories } from '../../src/context/CategoriesContext';
 import { useTheme } from '../../src/context/ThemeContext';
-import { AppCard } from '../../src/components/AppCard';
+import { AnimatedCard } from '../../src/components/AnimatedCard';
 import { MiniApp, RemoteApp } from '../../src/types';
+import Animated, { useSharedValue } from 'react-native-reanimated';
 
 const ALL_CAT_ID = 'all';
 
@@ -194,17 +195,18 @@ export default function StoreScreen() {
                         </Text>
                     </View>
                 }
-                renderItem={({ item }) => {
+                renderItem={({ item, index }) => {
                     const installed = isAppInstalled(item);
                     const isRemote = !('addedAt' in item);
                     return (
-                        <AppCard
+                        <AnimatedCard
                             app={item as MiniApp}
                             category={getCategory(item.categoryId)}
                             onPress={() => handleOpen(item)}
                             isInstalled={installed}
                             actionLabel={isRemote && !installed ? 'Ajouter' : undefined}
                             onAction={isRemote && !installed ? () => handleInstall(item as RemoteApp) : undefined}
+                            delay={index * 40}
                         />
                     );
                 }}

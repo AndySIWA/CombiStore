@@ -1,13 +1,27 @@
 import { Tabs } from 'expo-router';
 import { Text } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
 import { useTheme } from '../../src/context/ThemeContext';
+import { ANIMATIONS } from '../../src/constants/animations';
 
 function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
-    return (
-        <Text style={{ fontSize: focused ? 24 : 20, opacity: focused ? 1 : 0.5 }}>
-            {emoji}
-        </Text>
-    );
+  const scale = useSharedValue(focused ? 1.2 : 1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <Animated.View style={animatedStyle}>
+      <Text style={{ fontSize: focused ? 24 : 20, opacity: focused ? 1 : 0.5 }}>
+        {emoji}
+      </Text>
+    </Animated.View>
+  );
 }
 
 export default function TabLayout() {
