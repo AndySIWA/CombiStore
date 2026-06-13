@@ -157,7 +157,12 @@ export default function ManageAppScreen() {
             } else {
                 await addApp(appData);
             }
-            router.back();
+            // Safely dismiss the modal
+            try {
+                router.back();
+            } catch (navError) {
+                router.replace('/(tabs)/manage');
+            }
         } catch (e) {
             Alert.alert('Erreur', `Impossible d'${isEditing ? 'enregistrer' : 'ajouter'} l'app.`);
         } finally {
@@ -173,7 +178,13 @@ export default function ManageAppScreen() {
         >
             <View style={[styles.container, { backgroundColor: theme.bg }]}>
                 <LinearGradient colors={mode === 'dark' ? ['#0F1115', 'transparent'] : ['#FFFFFF', 'transparent']} style={styles.header}>
-                    <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+                    <TouchableOpacity onPress={() => {
+                        try {
+                            router.back();
+                        } catch (e) {
+                            router.replace('/(tabs)/manage');
+                        }
+                    }} style={styles.backBtn}>
                         <View style={styles.backBtnContent}>
                             <Text style={[styles.backArrow, { color: theme.accent }]}>←</Text>
                             <Text style={[styles.backText, { color: theme.accent }]}>Gérer les apps</Text>

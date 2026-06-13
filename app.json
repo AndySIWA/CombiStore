@@ -28,9 +28,11 @@
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
+    "newArchEnabled": true,
     "plugins": [
       "expo-router",
-      "expo-font"
+      "expo-font",
+      "expo-dev-client"
     ],
     "extra": {
       "router": {},

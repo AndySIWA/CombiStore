@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Text } from 'react-native';
+import { useEffect } from 'react';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -9,7 +10,22 @@ import { useTheme } from '../../src/context/ThemeContext';
 import { ANIMATIONS } from '../../src/constants/animations';
 
 function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
-  const scale = useSharedValue(focused ? 1.2 : 1);
+  const scale = useSharedValue(1);
+
+  // Update animation when focused state changes
+  useEffect(() => {
+    if (focused) {
+      scale.value = withSpring(1.2, {
+        damping: 10,
+        stiffness: 100,
+      });
+    } else {
+      scale.value = withSpring(1, {
+        damping: 10,
+        stiffness: 100,
+      });
+    }
+  }, [focused]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],

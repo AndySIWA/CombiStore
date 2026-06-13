@@ -38,7 +38,13 @@ export default function InfoScreen() {
                 colors={mode === 'dark' ? ['rgba(15, 17, 21, 0.95)', 'rgba(15, 17, 21, 0.7)', 'transparent'] : ['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.7)', 'transparent']}
                 style={styles.header}
             >
-                <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+                <TouchableOpacity onPress={() => {
+                    try {
+                        router.back();
+                    } catch (e) {
+                        router.replace('/(tabs)');
+                    }
+                }} style={styles.backBtn}>
                     <View style={[styles.backIconCircle, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                         <Text style={[styles.backIcon, { color: theme.accent }]}>←</Text>
                     </View>

@@ -37,18 +37,24 @@ export default function ViewerScreen() {
     React.useEffect(() => {
         if (Platform.OS === 'web' && app?.sourceType === 'url' && typeof window !== 'undefined') {
             window.open(app.source, '_blank', 'noopener,noreferrer');
-            // Return to previous page after opening new tab
-            setTimeout(() => router.back(), 500);
+            // Note: On web only, we return after opening the link
+            // On native, the modal dismisses naturally
         }
     }, [app?.source, app?.sourceType]);
 
-    // Fade in top bar or maintain as minimal overlay
+     // Fade in top bar or maintain as minimal overlay
     if (!app) {
         return (
             <View style={styles.center}>
                 <Text style={styles.errorIcon}>🔍</Text>
                 <Text style={styles.errorText}>App introuvable</Text>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+                <TouchableOpacity onPress={() => {
+                    try {
+                        router.back();
+                    } catch (e) {
+                        router.replace('/(tabs)');
+                    }
+                }} style={styles.backBtn}>
                     <Text style={styles.backText}>← Retour</Text>
                 </TouchableOpacity>
             </View>
@@ -57,7 +63,13 @@ export default function ViewerScreen() {
 
     const topBar = (
         <View style={styles.topBarOverlay}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.closeBtn}>
+            <TouchableOpacity onPress={() => {
+                try {
+                    router.back();
+                } catch (e) {
+                    router.replace('/(tabs)');
+                }
+            }} style={styles.closeBtn}>
                 <Text style={styles.closeBtnText}>✕</Text>
             </TouchableOpacity>
 
