@@ -20,6 +20,7 @@ import Animated, {
     withSequence,
     Easing,
 } from 'react-native-reanimated';
+import { FontAwesome6 } from '@expo/vector-icons';
 
 const ALL_CAT_ID = 'all';
 
@@ -155,7 +156,7 @@ export default function StoreScreen() {
                         </Animated.View>
                         <View>
                             <Text style={[styles.headerTitle, { color: theme.text }]}>Explorer</Text>
-                            <Text style={[styles.headerSlogan, { color: theme.textSecondary }]}>Nouveautés du Cloud</Text>
+                            <Text style={[styles.headerSlogan, { color: theme.textSecondary }]}>Nouveautés publiées</Text>
                         </View>
                     </TouchableOpacity>
 
@@ -165,7 +166,12 @@ export default function StoreScreen() {
                             disabled={refreshingRemote}
                             style={[styles.headerIconBtn, { backgroundColor: theme.surface, borderColor: theme.border, marginRight: 8 }]}
                         >
-                            <Text style={[styles.headerIconText, refreshingRemote && { opacity: 0.5 }]}>🔄</Text>
+                            <FontAwesome6
+                                name="arrows-rotate"
+                                size={18}
+                                color={theme.text}
+                                style={refreshingRemote ? { opacity: 0.4 } : undefined}
+                            />
                         </TouchableOpacity>
 
                         <TouchableOpacity
