@@ -526,7 +526,6 @@ export default function ManageAppScreen() {
                                         autoComplete="off"
                                         autoCorrect={false}
                                         spellCheck={false}
-                                        nestedScrollEnabled={true}
                                     />
                                 </View>
                             </>

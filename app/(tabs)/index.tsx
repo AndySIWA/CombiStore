@@ -11,7 +11,15 @@ import { useCategories } from '../../src/context/CategoriesContext';
 import { useTheme } from '../../src/context/ThemeContext';
 import { AnimatedCard } from '../../src/components/AnimatedCard';
 import { MiniApp, RemoteApp } from '../../src/types';
-import Animated, { useSharedValue } from 'react-native-reanimated';
+import Animated, {
+    useSharedValue,
+    useAnimatedStyle,
+    withSpring,
+    withTiming,
+    withRepeat,
+    withSequence,
+    Easing,
+} from 'react-native-reanimated';
 
 const ALL_CAT_ID = 'all';
 
@@ -22,6 +30,63 @@ export default function StoreScreen() {
     const [search, setSearch] = useState('');
     const [activeCategory, setActiveCategory] = useState(ALL_CAT_ID);
     const [searchFocused, setSearchFocused] = useState(false);
+
+    // Animation values for the app logo
+    const logoScale = useSharedValue(0.3);
+    const logoRotate = useSharedValue(-30);
+    const logoTranslateY = useSharedValue(0);
+
+    React.useEffect(() => {
+        // Entrance animation: scale up to 1 and rotate back to 0 with a nice spring bounce
+        logoScale.value = withSpring(1, { damping: 10, stiffness: 90 });
+        logoRotate.value = withSpring(0, { damping: 10, stiffness: 90 }, (finished) => {
+            if (finished) {
+                // Loop animations start once the entrance is complete
+                // Subtle breathing scale (oscillate between 0.96 and 1.04)
+                logoScale.value = withRepeat(
+                    withTiming(1.04, { duration: 2500, easing: Easing.inOut(Easing.ease) }),
+                    -1,
+                    true
+                );
+                // Subtle bobbing up and down (oscillate between -3 and 3 pixels)
+                logoTranslateY.value = withRepeat(
+                    withTiming(3, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
+                    -1,
+                    true
+                );
+            }
+        });
+    }, []);
+
+    const handleLogoPress = () => {
+        // Interactive pop on scale
+        logoScale.value = withSequence(
+            withTiming(1.25, { duration: 150, easing: Easing.out(Easing.ease) }),
+            withSpring(1, { damping: 8, stiffness: 100 })
+        );
+        // Quick 360-degree spin
+        logoRotate.value = 0; // reset rotation
+        logoRotate.value = withTiming(360, { duration: 550, easing: Easing.out(Easing.back()) }, (finished) => {
+            if (finished) {
+                logoRotate.value = 0; // reset to 0
+            }
+        });
+
+        // Small delay to let the animation start and show the spin pop before transition
+        setTimeout(() => {
+            router.push('/info');
+        }, 150);
+    };
+
+    const logoAnimatedStyle = useAnimatedStyle(() => {
+        return {
+            transform: [
+                { scale: logoScale.value },
+                { rotate: `${logoRotate.value}deg` },
+                { translateY: logoTranslateY.value },
+            ],
+        };
+    });
 
     const handleOpen = (app: MiniApp | RemoteApp) => {
         const isLocal = 'addedAt' in app;
@@ -78,16 +143,16 @@ export default function StoreScreen() {
                 <View style={styles.headerRow}>
                     <TouchableOpacity
                         style={styles.headerLeft}
-                        onPress={() => router.push('/info')}
+                        onPress={handleLogoPress}
                         activeOpacity={0.7}
                     >
-                        <View style={styles.logoContainer}>
+                        <Animated.View style={[styles.logoContainer, logoAnimatedStyle]}>
                             <Image
                                 source={require('../../assets/Logo_CombiStore.png')}
                                 style={styles.headerLogo}
                                 resizeMode="contain"
                             />
-                        </View>
+                        </Animated.View>
                         <View>
                             <Text style={[styles.headerTitle, { color: theme.text }]}>Explorer</Text>
                             <Text style={[styles.headerSlogan, { color: theme.textSecondary }]}>Nouveautés du Cloud</Text>
