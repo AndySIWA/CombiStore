@@ -15,6 +15,7 @@
     "@sanity/client": "^7.22.0",
     "babel-preset-expo": "~54.0.10",
     "expo": "~54.0.35",
+    "expo-clipboard": "~8.0.8",
     "expo-constants": "~18.0.13",
     "expo-dev-client": "~6.0.21",
     "expo-document-picker": "~14.0.8",

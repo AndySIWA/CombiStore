@@ -7,25 +7,32 @@ import { client, getRemoteAppsQuery } from '../lib/sanity';
 
 const STORAGE_KEY = '@combistore_apps';
 
-const syncImportedApps = (localApps: MiniApp[], remoteApps: RemoteApp[]) => {
-    const remoteById = new Map(remoteApps.map(app => [app.id, app]));
+const syncImportedApps = (localApps: MiniApp[] = [], remoteApps: RemoteApp[] = []) => {
+    const safeLocalApps = Array.isArray(localApps) ? localApps : [];
+    const safeRemoteApps = Array.isArray(remoteApps) ? remoteApps : [];
 
-    return localApps.map(localApp => {
-        if (!localApp.remoteId) return localApp;
+    const remoteById = new Map(
+        safeRemoteApps
+            .filter(app => app && typeof app.id === 'string')
+            .map(app => [app.id, app])
+    );
+
+    return safeLocalApps.map(localApp => {
+        if (!localApp || !localApp.remoteId) return localApp;
 
         const remoteApp = remoteById.get(localApp.remoteId);
         if (!remoteApp) return localApp;
 
         return {
             ...localApp,
-            name: remoteApp.name,
-            description: remoteApp.description,
-            categoryId: remoteApp.categoryId,
-            sourceType: remoteApp.sourceType,
-            source: remoteApp.source,
+            name: remoteApp.name || localApp.name,
+            description: remoteApp.description || localApp.description,
+            categoryId: remoteApp.categoryId || localApp.categoryId,
+            sourceType: remoteApp.sourceType || localApp.sourceType,
+            source: remoteApp.source || localApp.source,
             icon: remoteApp.icon?.trim() || localApp.icon,
-            version: remoteApp.version,
-            lastUpdated: remoteApp.lastUpdated,
+            version: remoteApp.version || localApp.version,
+            lastUpdated: remoteApp.lastUpdated || localApp.lastUpdated,
         };
     });
 };
@@ -54,14 +61,15 @@ export function AppsProvider({ children }: { children: ReactNode }) {
         try {
             const stored = await AsyncStorage.getItem(STORAGE_KEY);
             if (stored) {
-                const parsedApps = JSON.parse(stored) as MiniApp[];
-                setApps(parsedApps);
-                return parsedApps;
-            } else {
-                await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(SAMPLE_APPS));
-                setApps(SAMPLE_APPS);
-                return SAMPLE_APPS;
+                const parsedApps = JSON.parse(stored);
+                if (Array.isArray(parsedApps)) {
+                    setApps(parsedApps);
+                    return parsedApps;
+                }
             }
+            await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(SAMPLE_APPS));
+            setApps(SAMPLE_APPS);
+            return SAMPLE_APPS;
         } catch (e) {
             console.error('Error loading apps:', e);
             setApps(SAMPLE_APPS);
@@ -105,6 +113,10 @@ export function AppsProvider({ children }: { children: ReactNode }) {
 
     const saveApps = async (newApps: MiniApp[]) => {
         try {
+            if (!Array.isArray(newApps)) {
+                console.error('[AppsContext] saveApps called with non-array:', newApps);
+                return;
+            }
             await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newApps));
         } catch (e) {
             console.error('Error saving apps:', e);

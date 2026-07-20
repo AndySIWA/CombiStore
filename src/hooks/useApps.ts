@@ -17,12 +17,15 @@ export function useApps() {
         try {
             const stored = await AsyncStorage.getItem(STORAGE_KEY);
             if (stored) {
-                setApps(JSON.parse(stored));
-            } else {
-                // First launch — seed with sample apps
-                await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(SAMPLE_APPS));
-                setApps(SAMPLE_APPS);
+                const parsed = JSON.parse(stored);
+                if (Array.isArray(parsed)) {
+                    setApps(parsed);
+                    return;
+                }
             }
+            // First launch — seed with sample apps
+            await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(SAMPLE_APPS));
+            setApps(SAMPLE_APPS);
         } catch (e) {
             console.error('Error loading apps:', e);
             setApps(SAMPLE_APPS);
@@ -33,6 +36,7 @@ export function useApps() {
 
     const saveApps = async (newApps: MiniApp[]) => {
         try {
+            if (!Array.isArray(newApps)) return;
             await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newApps));
         } catch (e) {
             console.error('Error saving apps:', e);

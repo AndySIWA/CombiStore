@@ -51,7 +51,7 @@ export default function ManageAppsScreen() {
                             <Text style={[styles.typeText, { color: theme.textMuted }]}>{app.sourceType.toUpperCase()}</Text>
                         </View>
                         <Text style={[styles.catLabel, { color: cat?.color ?? theme.textSecondary }]}>
-                            {cat?.icon} {cat?.name}
+                            {cat?.icon}
                         </Text>
                     </View>
                 </View>

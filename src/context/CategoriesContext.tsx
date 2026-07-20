@@ -66,9 +66,12 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
             const stored = await AsyncStorage.getItem(STORAGE_KEY);
             let customCategories: Category[] = [];
             if (stored) {
-                customCategories = JSON.parse(stored).filter((cat: Category) =>
-                    !allCategories.some(existingCat => existingCat.id === cat.id)
-                );
+                const parsed = JSON.parse(stored);
+                if (Array.isArray(parsed)) {
+                    customCategories = parsed.filter((cat: Category) =>
+                        cat && !allCategories.some(existingCat => existingCat?.id === cat.id)
+                    );
+                }
             }
 
             const finalCategories = [...allCategories, ...customCategories];
@@ -82,7 +85,12 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
             // Fallback aux catégories locales
             const stored = await AsyncStorage.getItem(STORAGE_KEY);
             if (stored) {
-                setCategories(JSON.parse(stored));
+                const parsed = JSON.parse(stored);
+                if (Array.isArray(parsed)) {
+                    setCategories(parsed);
+                } else {
+                    setCategories(DEFAULT_CATEGORIES);
+                }
             } else {
                 await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_CATEGORIES));
                 setCategories(DEFAULT_CATEGORIES);
@@ -98,6 +106,10 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
 
     const saveCategories = async (cats: Category[]) => {
         try {
+            if (!Array.isArray(cats)) {
+                console.error('[CategoriesContext] saveCategories called with non-array:', cats);
+                return;
+            }
             await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(cats));
         } catch (e) {
             console.error('Error saving categories:', e);

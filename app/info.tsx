@@ -50,7 +50,7 @@ export default function InfoScreen() {
                     </View>
                     <Text style={[styles.backText, { color: theme.accent }]}>Boutique</Text>
                 </TouchableOpacity>
-                <Text style={[styles.headerTitle, { color: theme.text }]}>Créé par Andy</Text>
+                <Text style={[styles.headerTitle, { color: theme.text }]}>Créé par Andy SIWA</Text>
             </LinearGradient>
 
             {/* Custom Tab Switcher Premium */}
@@ -126,18 +126,17 @@ export default function InfoScreen() {
                         }]}>
                             <View style={[styles.profileImageContainer, { borderColor: theme.accent, borderWidth: 3 }]}>
                                 <Image
-                                    source={require('../assets/image_2.jpg')}
+                                    source={require('../assets/Andy_bureau_nocturne.jpg')}
                                     style={styles.profileImage}
                                 />
-                                <View style={[styles.devStatusDot, { backgroundColor: '#4CAF50', borderColor: theme.surface }]} />
                             </View>
                             <Text style={[styles.devName, { color: theme.text }]}>Andy SIWA</Text>
-                            <Text style={[styles.devCategory, { color: theme.accent }]}>Ingénieur Électricien Innovant</Text>
+                            {/* <Text style={[styles.devCategory, { color: theme.accent }]}>Ingénieur Innovant</Text> */}
 
-                            <Text style={[styles.bio, { color: theme.textSecondary }]}>
-                                Expert en convergence <Text style={{ color: theme.text, fontWeight: 'bold' }}>Électrotechnique</Text>,
+                            {/* <Text style={[styles.bio, { color: theme.textSecondary }]}>
+                                Passionné <Text style={{ color: theme.text, fontWeight: 'bold' }}>Électrotechnique</Text>,
                                 <Text style={{ color: theme.text, fontWeight: 'bold' }}> Électronique</Text> et <Text style={{ color: theme.text, fontWeight: 'bold' }}> Informatique</Text>.
-                            </Text>
+                            </Text> */}
 
                             <View style={styles.socialGrid}>
                                 {socialLinks.map(link => (
@@ -146,7 +145,7 @@ export default function InfoScreen() {
                                         style={styles.socialIconBtnPlain}
                                         onPress={() => openLink(link.url)}
                                     >
-                                        <FontAwesome6 name={link.icon} size={28} color={link.color} />
+                                        <FontAwesome6 name={link.icon} size={20} color={link.color} />
                                     </TouchableOpacity>
                                 ))}
                             </View>
@@ -155,8 +154,7 @@ export default function InfoScreen() {
                         <Text style={[styles.sectionTitle, { color: theme.text }]}>Expertises</Text>
                         <View style={styles.serviceList}>
                             {[
-                                { title: 'Électricité Bâtiment', icon: '🔌' },
-                                { title: 'Énergie Solaire', icon: '☀️' },
+                                { title: 'Génie électrique', icon: '🔌' },
                                 { title: 'Programmation', icon: '💻' },
                                 { title: 'Design Graphique', icon: '🎨' },
                             ].map((s, i) => (
@@ -292,33 +290,24 @@ const styles = StyleSheet.create({
     profileImageContainer: {
         width: 140,
         height: 140,
-        borderRadius: 70,
-        padding: 5,
+        borderRadius: 10,
+        padding: 2,
         marginBottom: 20,
         position: 'relative',
     },
     profileImage: {
         width: '100%',
         height: '100%',
-        borderRadius: 65,
+        borderRadius: 10,
     },
-    devStatusDot: {
-        position: 'absolute',
-        bottom: 8,
-        right: 8,
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        borderWidth: 4,
-    },
-    devName: { fontSize: 28, fontFamily: FONT.bold, marginBottom: 6 },
+    devName: { fontSize: 24, fontFamily: FONT.bold, marginBottom: 6 },
     devCategory: { fontSize: 16, fontFamily: FONT.semiBold, marginBottom: 20 },
     bio: { fontSize: 16, fontFamily: FONT.regular, textAlign: 'center', lineHeight: 24, marginBottom: 25 },
 
     socialGrid: { flexDirection: 'row', gap: 20, marginTop: 10 },
     socialIconBtnPlain: {
-        width: 44,
-        height: 44,
+        width: 20,
+        height: 20,
         alignItems: 'center',
         justifyContent: 'center',
     },

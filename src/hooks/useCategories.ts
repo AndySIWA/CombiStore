@@ -18,11 +18,14 @@ export function useCategories() {
         try {
             const stored = await AsyncStorage.getItem(STORAGE_KEY);
             if (stored) {
-                setCategories(JSON.parse(stored));
-            } else {
-                await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_CATEGORIES));
-                setCategories(DEFAULT_CATEGORIES);
+                const parsed = JSON.parse(stored);
+                if (Array.isArray(parsed)) {
+                    setCategories(parsed);
+                    return;
+                }
             }
+            await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_CATEGORIES));
+            setCategories(DEFAULT_CATEGORIES);
         } catch (e) {
             console.error('Error loading categories:', e);
             setCategories(DEFAULT_CATEGORIES);
@@ -33,6 +36,7 @@ export function useCategories() {
 
     const saveCategories = async (cats: Category[]) => {
         try {
+            if (!Array.isArray(cats)) return;
             await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(cats));
         } catch (e) {
             console.error('Error saving categories:', e);

@@ -81,7 +81,7 @@ export default function StoreScreen() {
                         onPress={() => router.push('/info')}
                         activeOpacity={0.7}
                     >
-                        <View style={[styles.logoContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                        <View style={styles.logoContainer}>
                             <Image
                                 source={require('../../assets/Logo_CombiStore.png')}
                                 style={styles.headerLogo}
@@ -254,11 +254,8 @@ const styles = StyleSheet.create({
         gap: 16,
     },
     logoContainer: {
-        width: 48,
-        height: 48,
-        borderRadius: 14,
-        padding: 8,
-        borderWidth: 1,
+        width: 60,
+        height: 60,
     },
     headerLogo: {
         width: '100%',

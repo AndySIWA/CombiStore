@@ -18,9 +18,8 @@
     "android": {
       "package": "com.combistore.app",
       "adaptiveIcon": {
-        "backgroundColor": "#0A0A12",
+        "backgroundColor": "#16191E",
         "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       }
     },

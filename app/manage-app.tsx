@@ -8,6 +8,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
+import * as Clipboard from 'expo-clipboard';
 import { COLORS, RADII, SPACING, FONT, GRADIENTS } from '../src/constants/theme';
 import { useApps } from '../src/context/AppsContext';
 import { useCategories } from '../src/context/CategoriesContext';
@@ -15,7 +16,90 @@ import { useTheme } from '../src/context/ThemeContext';
 import { CATEGORY_ICONS } from '../src/constants/defaults';
 import { MiniApp } from '../src/types';
 
-type TabSource = 'url' | 'html';
+const SAMPLE_SPA_TEMPLATE = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ma Super SPA</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0F172A, #1E1B4B);
+      color: #F8FAFC;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 30px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      max-width: 400px;
+      width: 90%;
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 10px;
+      background: linear-gradient(to right, #8B5CF6, #EC4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    p {
+      color: #94A3B8;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    .btn {
+      background: linear-gradient(to right, #8B5CF6, #EC4899);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 15px;
+      font-weight: bold;
+      border-radius: 50px;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: transform 0.2s;
+    }
+    .btn:active {
+      transform: scale(0.95);
+    }
+    .counter {
+      font-size: 32px;
+      font-weight: bold;
+      margin: 15px 0;
+      color: #EC4899;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>CombiStore SPA</h1>
+    <p>Cette mini-app a été créée directement dans l'éditeur de code de CombiStore !</p>
+    <div class="counter" id="counter">0</div>
+    <button class="btn" onclick="increment()">Cliquez-moi !</button>
+  </div>
+
+  <script>
+    let count = 0;
+    function increment() {
+      count++;
+      document.getElementById('counter').innerText = count;
+    }
+  </script>
+</body>
+</html>`;
+
+type TabSource = 'url' | 'html' | 'code';
 
 export default function ManageAppScreen() {
     const { id } = useLocalSearchParams<{ id?: string }>();
@@ -47,12 +131,13 @@ export default function ManageAppScreen() {
                 setDescription(app.description);
                 setCategoryId(app.categoryId);
                 setIcon(app.icon ?? '🌐');
-                setTab(app.sourceType as TabSource);
                 if (app.sourceType === 'url') {
+                    setTab('url');
                     setUrl(app.source);
                 } else {
+                    setTab('code');
                     setHtmlContent(app.source);
-                    setHtmlFileName('Fichier importé');
+                    setHtmlFileName('Code source');
                 }
             }
         }
@@ -128,13 +213,62 @@ export default function ManageAppScreen() {
         }
     };
 
+    const handleCodeChange = (text: string) => {
+        setHtmlContent(text);
+        if (!name) {
+            const match = text.match(/<title>([^<]*)<\/title>/i);
+            if (match && match[1] && match[1].trim()) {
+                setName(match[1].trim());
+            }
+        }
+    };
+
+    const handlePasteCode = async () => {
+        try {
+            const text = await Clipboard.getStringAsync();
+            if (text && text.trim()) {
+                handleCodeChange(text);
+            } else {
+                Alert.alert('Presse-papiers vide', 'Aucun texte n\'a été trouvé dans le presse-papiers.');
+            }
+        } catch (e) {
+            console.error('Error pasting code:', e);
+            Alert.alert('Erreur', 'Impossible de lire le presse-papiers.');
+        }
+    };
+
+    const insertSampleTemplate = () => {
+        if (htmlContent.trim()) {
+            Alert.alert(
+                'Confirmer',
+                'Voulez-vous remplacer le code existant par le modèle d\'exemple ?',
+                [
+                    { text: 'Annuler', style: 'cancel' },
+                    {
+                        text: 'Remplacer',
+                        style: 'destructive',
+                        onPress: () => {
+                            setHtmlContent(SAMPLE_SPA_TEMPLATE);
+                            if (!name || name === 'Code source' || name === 'Fichier importé') setName('Ma Super SPA');
+                        }
+                    }
+                ]
+            );
+        } else {
+            setHtmlContent(SAMPLE_SPA_TEMPLATE);
+            if (!name || name === 'Code source' || name === 'Fichier importé') setName('Ma Super SPA');
+        }
+    };
+
     const validate = (): string | null => {
         if (!name.trim()) return 'Le nom est requis.';
         if (tab === 'url') {
             if (!url.trim()) return "L'URL est requise.";
             if (!url.startsWith('http://') && !url.startsWith('https://')) return "L'URL doit commencer par http:// ou https://";
+        } else if (tab === 'html') {
+            if (!htmlContent.trim()) return 'Veuillez importer un fichier HTML.';
         } else {
-            if (!htmlContent) return 'Veuillez importer un fichier HTML.';
+            if (!htmlContent.trim()) return 'Veuillez saisir ou coller du code HTML.';
         }
         return null;
     };
@@ -148,7 +282,7 @@ export default function ManageAppScreen() {
                 name: name.trim(),
                 description: description.trim() || `Mini app ${tab === 'url' ? 'en ligne' : 'locale'}`,
                 categoryId,
-                sourceType: tab,
+                sourceType: tab === 'url' ? 'url' : 'html',
                 source: tab === 'url' ? url.trim() : htmlContent,
                 icon: icon.trim() || '🌐',
             };
@@ -200,17 +334,17 @@ export default function ManageAppScreen() {
                     keyboardShouldPersistTaps="handled"
                 >
                     {/* Tab switcher */}
-                    {!isEditing && (
+                    {(!isEditing || (isEditing && tab !== 'url')) && (
                         <View style={[styles.tabRow, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                            {(['url', 'html'] as TabSource[]).map(t => (
+                            {((isEditing ? ['html', 'code'] : ['url', 'html', 'code']) as TabSource[]).map(t => (
                                 <TouchableOpacity
                                     key={t}
                                     style={[styles.tabBtn, tab === t && { backgroundColor: theme.surfaceDark }]}
                                     onPress={() => setTab(t)}
                                 >
                                     <View style={styles.tabContent}>
-                                        <Text style={[styles.tabText, { color: theme.textSecondary }, tab === t && { color: theme.text }]}>
-                                            {t === 'url' ? 'Application URL' : 'Fichier HTML'}
+                                        <Text style={[styles.tabText, { color: theme.textSecondary }, tab === t && { color: theme.text }]} numberOfLines={1}>
+                                            {t === 'url' ? 'URL' : t === 'html' ? 'Fichier HTML' : 'Code SPA'}
                                         </Text>
                                         {tab === t && <View style={[styles.activeDot, { backgroundColor: theme.accent }]} />}
                                     </View>
@@ -338,7 +472,7 @@ export default function ManageAppScreen() {
                                     />
                                 </View>
                             </>
-                        ) : (
+                        ) : tab === 'html' ? (
                             <>
                                 <Text style={[styles.label, { color: theme.textSecondary }]}>Code Source HTML</Text>
                                 <TouchableOpacity
@@ -357,6 +491,44 @@ export default function ManageAppScreen() {
                                         </Text>
                                     </LinearGradient>
                                 </TouchableOpacity>
+                            </>
+                        ) : (
+                            <>
+                                <View style={styles.codeHeaderRow}>
+                                    <Text style={[styles.label, { color: theme.textSecondary, marginTop: 0 }]}>Éditeur Code SPA</Text>
+                                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                                        <TouchableOpacity
+                                            onPress={handlePasteCode}
+                                            style={[styles.templateBtn, { borderColor: theme.accent }]}
+                                        >
+                                            <Text style={[styles.templateBtnText, { color: theme.accent }]}>📋 Coller</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            onPress={insertSampleTemplate}
+                                            style={[styles.templateBtn, { borderColor: theme.accent }]}
+                                        >
+                                            <Text style={[styles.templateBtnText, { color: theme.accent }]}>✨ Modèle</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                                <Text style={[styles.codeHelperText, { color: theme.textMuted }]}>
+                                    Saisissez ou collez du code HTML, CSS et JavaScript. Tout doit être réuni dans une seule page (SPA).
+                                </Text>
+                                <View style={[styles.codeEditorContainer, { borderColor: theme.border }]}>
+                                    <TextInput
+                                        style={styles.codeEditor}
+                                        value={htmlContent}
+                                        onChangeText={handleCodeChange}
+                                        placeholder="<!DOCTYPE html>..."
+                                        placeholderTextColor="#666"
+                                        multiline={true}
+                                        autoCapitalize="none"
+                                        autoComplete="off"
+                                        autoCorrect={false}
+                                        spellCheck={false}
+                                        nestedScrollEnabled={true}
+                                    />
+                                </View>
                             </>
                         )}
                     </View>
@@ -604,5 +776,44 @@ const styles = StyleSheet.create({
         fontFamily: FONT.bold,
         fontSize: 16,
         color: COLORS.white,
+    },
+    codeHeaderRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 16,
+        marginBottom: 8,
+    },
+    templateBtn: {
+        borderWidth: 1,
+        borderStyle: 'dashed',
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 8,
+    },
+    templateBtnText: {
+        fontFamily: FONT.bold,
+        fontSize: 12,
+    },
+    codeHelperText: {
+        fontFamily: FONT.regular,
+        fontSize: 12,
+        marginBottom: 12,
+        lineHeight: 18,
+    },
+    codeEditorContainer: {
+        borderWidth: 1,
+        borderRadius: 16,
+        overflow: 'hidden',
+        backgroundColor: '#1E1E1E',
+    },
+    codeEditor: {
+        minHeight: 250,
+        maxHeight: 400,
+        padding: 16,
+        fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+        fontSize: 14,
+        color: '#D4D4D4',
+        textAlignVertical: 'top',
     },
 });
