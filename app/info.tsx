@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View, Text, StyleSheet, ScrollView, TouchableOpacity,
     Image, Linking, Platform, Dimensions,
@@ -8,20 +8,90 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, SPACING, FONT, GRADIENTS, RADII } from '../src/constants/theme';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { useTheme } from '../src/context/ThemeContext';
+import { client, getDeveloperQuery } from '../src/lib/sanity';
 
 const { width } = Dimensions.get('window');
+
+interface DeveloperData {
+    name: string;
+    photoUrl: string | null;
+    bio: string;
+    services: { title: string; icon: string }[];
+    links: {
+        whatsapp?: string;
+        github?: string;
+        linkedin?: string;
+        email?: string;
+        portfolio?: string;
+    };
+}
 
 export default function InfoScreen() {
     const { theme, mode } = useTheme();
     // Par défaut sur la section Développeur
     const [activeTab, setActiveTab] = useState<'app' | 'dev'>('dev');
+    const [developer, setDeveloper] = useState<DeveloperData | null>(null);
 
-    const socialLinks = [
-        { id: 'whatsapp', name: 'WhatsApp', url: 'https://wa.me/237652481643', icon: 'whatsapp', color: '#25D366' },
-        { id: 'github', name: 'GitHub', url: 'https://github.com/AndySIWA/', icon: 'github', color: mode === 'dark' ? '#FFFFFF' : '#000000' },
-        { id: 'linkedin', name: 'LinkedIn', url: 'https://www.linkedin.com/in/andy-siwa-180283199/', icon: 'linkedin', color: '#0077B5' },
-        { id: 'email', name: 'Email', url: 'mailto:blendy03ing@gmail.com', icon: 'envelope', color: '#EA4335' },
-    ];
+    useEffect(() => {
+        let isMounted = true;
+        client.fetch<DeveloperData | null>(getDeveloperQuery)
+            .then(data => {
+                if (isMounted && data) {
+                    setDeveloper(data);
+                }
+            })
+            .catch(err => {
+                console.error("Error fetching developer profile from Sanity:", err);
+            });
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+    const devData = {
+        name: developer?.name || "Andy SIWA",
+        bio: developer?.bio || "Passionné Électrotechnique, Électronique et Informatique.",
+        photoUrl: developer?.photoUrl || null,
+        services: developer?.services || [
+            { title: 'Génie électrique', icon: '🔌' },
+            { title: 'Programmation', icon: '💻' },
+            { title: 'Design Graphique', icon: '🎨' },
+        ],
+        links: {
+            whatsapp: developer?.links?.whatsapp || 'https://wa.me/237652481643',
+            github: developer?.links?.github || 'https://github.com/AndySIWA/',
+            linkedin: developer?.links?.linkedin || 'https://www.linkedin.com/in/andy-siwa-180283199/',
+            email: developer?.links?.email || 'blendy03ing@gmail.com',
+            portfolio: developer?.links?.portfolio || '',
+        }
+    };
+
+    let whatsappUrl = devData.links.whatsapp || '';
+    if (whatsappUrl && !whatsappUrl.startsWith('http') && !whatsappUrl.startsWith('whatsapp:')) {
+        const phone = whatsappUrl.replace(/[^\d+]/g, '');
+        whatsappUrl = `https://wa.me/${phone.startsWith('+') ? phone.slice(1) : phone}`;
+    }
+
+    const emailUrl = devData.links.email
+        ? (devData.links.email.startsWith('mailto:') ? devData.links.email : `mailto:${devData.links.email}`)
+        : '';
+
+    const socialLinks = [];
+    if (whatsappUrl) {
+        socialLinks.push({ id: 'whatsapp', name: 'WhatsApp', url: whatsappUrl, icon: 'whatsapp', color: '#25D366' });
+    }
+    if (devData.links.github) {
+        socialLinks.push({ id: 'github', name: 'GitHub', url: devData.links.github, icon: 'github', color: mode === 'dark' ? '#FFFFFF' : '#000000' });
+    }
+    if (devData.links.linkedin) {
+        socialLinks.push({ id: 'linkedin', name: 'LinkedIn', url: devData.links.linkedin, icon: 'linkedin', color: '#0077B5' });
+    }
+    if (emailUrl) {
+        socialLinks.push({ id: 'email', name: 'Email', url: emailUrl, icon: 'envelope', color: '#EA4335' });
+    }
+    if (devData.links.portfolio) {
+        socialLinks.push({ id: 'portfolio', name: 'Portfolio', url: devData.links.portfolio, icon: 'globe', color: theme.accent });
+    }
 
     const openLink = (url: string) => {
         Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
@@ -120,23 +190,22 @@ export default function InfoScreen() {
                     <View style={styles.sectionFade}>
                         {/* Developer Card Premium Glassmorphism */}
                         <View style={[styles.mainCard, {
-                            backgroundColor: mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.9)',
+                            backgroundColor: mode === 'dark' ? 'rgba(50, 208, 182, 0.08)' : 'rgba(255,255,255,0.9)',
                             borderColor: theme.border,
                             borderWidth: 2.5
                         }]}>
                             <View style={[styles.profileImageContainer, { borderColor: theme.accent, borderWidth: 3 }]}>
                                 <Image
-                                    source={require('../assets/Andy_bureau_nocturne.jpg')}
+                                    source={devData.photoUrl ? { uri: devData.photoUrl } : require('../assets/Andy_bureau_nocturne.jpg')}
                                     style={styles.profileImage}
                                 />
                             </View>
-                            <Text style={[styles.devName, { color: theme.text }]}>Andy SIWA</Text>
+                            <Text style={[styles.devName, { color: theme.text }]}>{devData.name}</Text>
                             {/* <Text style={[styles.devCategory, { color: theme.accent }]}>Ingénieur Innovant</Text> */}
 
-                            {/* <Text style={[styles.bio, { color: theme.textSecondary }]}>
-                                Passionné <Text style={{ color: theme.text, fontWeight: 'bold' }}>Électrotechnique</Text>,
-                                <Text style={{ color: theme.text, fontWeight: 'bold' }}> Électronique</Text> et <Text style={{ color: theme.text, fontWeight: 'bold' }}> Informatique</Text>.
-                            </Text> */}
+                            <Text style={[styles.bio, { color: theme.textSecondary }]}>
+                                {devData.bio}
+                            </Text>
 
                             <View style={styles.socialGrid}>
                                 {socialLinks.map(link => (
@@ -153,11 +222,7 @@ export default function InfoScreen() {
 
                         <Text style={[styles.sectionTitle, { color: theme.text }]}>Expertises</Text>
                         <View style={styles.serviceList}>
-                            {[
-                                { title: 'Génie électrique', icon: '🔌' },
-                                { title: 'Programmation', icon: '💻' },
-                                { title: 'Design Graphique', icon: '🎨' },
-                            ].map((s, i) => (
+                            {devData.services.map((s, i) => (
                                 <View key={i} style={[styles.serviceItem, { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 2 }]}>
                                     <Text style={styles.serviceEmoji}>{s.icon}</Text>
                                     <Text style={[styles.serviceLabel, { color: theme.text }]}>{s.title}</Text>
@@ -288,12 +353,14 @@ const styles = StyleSheet.create({
 
     // Developer Styles
     profileImageContainer: {
-        width: 140,
-        height: 140,
+        width: '90%',
+        maxWidth: 320,
+        aspectRatio: 1,
         borderRadius: 10,
         padding: 2,
         marginBottom: 20,
         position: 'relative',
+        alignSelf: 'center',
     },
     profileImage: {
         width: '100%',

@@ -44,3 +44,21 @@ export const getFeaturedAppsQuery = `*[_type == "miniApp" && featured == true] {
   author,
   "lastUpdated": coalesce(lastUpdated, _updatedAt)
 } | order(lastUpdated desc)`
+
+export const getDeveloperQuery = `*[_type == "developer"][0] {
+  name,
+  "photoUrl": photo.asset->url,
+  bio,
+  services[] {
+    title,
+    icon
+  },
+  links {
+    whatsapp,
+    github,
+    linkedin,
+    email,
+    portfolio
+  }
+}`
+
