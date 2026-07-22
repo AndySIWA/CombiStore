@@ -168,13 +168,13 @@ export default function InfoScreen() {
                             </Text>
                         </View>
 
-                        <Text style={[styles.sectionTitle, { color: theme.text }]}>Atouts Clés</Text>
+                        <Text style={[styles.sectionTitle, { color: theme.text }]}>Fonctionnalités</Text>
                         <View style={styles.featureGrid}>
                             {[
-                                { title: 'Import URL', desc: 'Sites web en un clic.', icon: '🌐' },
-                                { title: 'Local HTML', desc: 'Vos créations locales.', icon: '📁' },
-                                { title: 'Catégories', desc: 'Organisation sur mesure.', icon: '🏷️' },
-                                { title: 'Mode Sombre', desc: 'Design premium doux.', icon: '🌙' },
+                                { title: 'Import URL', desc: 'Transformez n\'importe quel site web en application d\'un simple clic.', icon: '🌐' },
+                                { title: 'Local HTML', desc: 'Intégrez et exécutez facilement vos propres projets et fichiers HTML locaux.', icon: '📁' },
+                                { title: 'Catégories', desc: 'Organisez et filtrez vos applications selon vos besoins et vos préférences.', icon: '🏷️' },
+                                { title: 'Mode Sombre', desc: 'Profitez d\'une interface moderne et élégante pour un confort visuel optimal.', icon: '🌙' },
                             ].map((item, i) => (
                                 <View key={i} style={[styles.miniFeatureCard, { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 2 }]}>
                                     <Text style={styles.miniIcon}>{item.icon}</Text>
