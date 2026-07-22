@@ -15,6 +15,8 @@ import { AppsProvider } from '../src/context/AppsContext';
 import { CategoriesProvider } from '../src/context/CategoriesContext';
 import { ThemeProvider, useTheme } from '../src/context/ThemeContext';
 
+import { checkForAppUpdates } from '../src/services/updatesService';
+
 SplashScreen.preventAutoHideAsync();
 
 function StackLayout() {
@@ -60,6 +62,7 @@ export default function RootLayout() {
     useEffect(() => {
         if (fontsLoaded || fontError) {
             SplashScreen.hideAsync();
+            checkForAppUpdates();
         }
     }, [fontsLoaded, fontError]);
 
