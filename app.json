@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "light",
     "scheme": "combistore",
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -18,7 +18,7 @@
     "android": {
       "package": "com.combistore.app",
       "adaptiveIcon": {
-        "backgroundColor": "#16191E",
+        "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       }
