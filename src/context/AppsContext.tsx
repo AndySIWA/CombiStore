@@ -7,6 +7,7 @@ import { client, getRemoteAppsQuery } from '../lib/sanity';
 
 const STORAGE_KEY = '@combistore_apps';
 const CUSTOM_APPS_KEY = '@combistore_custom_apps';
+const INITIALIZED_KEY = '@combistore_initialized';
 
 const syncImportedApps = (localApps: MiniApp[] = [], remoteApps: RemoteApp[] = []) => {
     const safeLocalApps = Array.isArray(localApps) ? localApps : [];
@@ -68,13 +69,13 @@ export function AppsProvider({ children }: { children: ReactNode }) {
                     return parsedApps;
                 }
             }
-            await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(SAMPLE_APPS));
-            setApps(SAMPLE_APPS);
-            return SAMPLE_APPS;
+            // Ne pas initialiser avec SAMPLE_APPS ici - on laisse Sanity faire le premier chargement
+            setApps([]);
+            return [];
         } catch (e) {
             console.error('Error loading apps:', e);
-            setApps(SAMPLE_APPS);
-            return SAMPLE_APPS;
+            setApps([]);
+            return [];
         } finally {
             setLoading(false);
         }
@@ -100,16 +101,28 @@ export function AppsProvider({ children }: { children: ReactNode }) {
                 // Mettre à jour les apps importées avec les données Sanity
                 const importedApps = syncImportedApps(baseApps ?? [], data);
                 // Combiner : apps importées (mises à jour) + apps personnalisées créées
+                // IMPORTANT: ne PAS inclure SAMPLE_APPS ici !
                 const combined = [...importedApps, ...customApps];
 
                 setApps(combined);
                 saveApps(combined);
+                
+                // Marquer comme initialisé
+                await AsyncStorage.setItem(INITIALIZED_KEY, 'true');
             } else {
                 throw new Error('Aucune app trouvée dans Sanity');
             }
         } catch (e) {
             console.warn('[AppsContext] Erreur Sanity, chargement des démos...', e);
             setRemoteApps(DEMO_APPS);
+            
+            // Seulement charger SAMPLE_APPS en fallback si pas encore initialisé
+            const isInitialized = await AsyncStorage.getItem(INITIALIZED_KEY);
+            if (!isInitialized) {
+                setApps(SAMPLE_APPS);
+                saveApps(SAMPLE_APPS);
+                await AsyncStorage.setItem(INITIALIZED_KEY, 'true');
+            }
         } finally {
             setRefreshingRemote(false);
         }
