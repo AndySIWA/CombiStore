@@ -5,6 +5,7 @@ import { DEFAULT_CATEGORIES } from '../constants/defaults';
 import { client, getCategoriesQuery } from '../lib/sanity';
 
 const STORAGE_KEY = '@combistore_categories';
+const CUSTOM_CATEGORIES_KEY = '@combistore_custom_categories';
 
 interface CategoriesContextType {
     categories: Category[];
@@ -54,30 +55,26 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
                     Boolean(cat.id && cat.name && cat.color && cat.icon)
                 );
 
-            // Fusionner avec les catégories locales (en donnant priorité à Sanity)
-            const sanityIds = new Set(sanityCategories.map(cat => cat.id.toLowerCase()));
-            const localCategories = DEFAULT_CATEGORIES.filter(cat =>
-                !sanityIds.has(cat.id.toLowerCase())
-            );
-
-            const allCategories = [...sanityCategories, ...localCategories];
-
-            // Charger les catégories personnalisées locales
-            const stored = await AsyncStorage.getItem(STORAGE_KEY);
+            // Charger les catégories personnalisées locales (créées par l'utilisateur)
+            const stored = await AsyncStorage.getItem(CUSTOM_CATEGORIES_KEY);
             let customCategories: Category[] = [];
             if (stored) {
                 const parsed = JSON.parse(stored);
                 if (Array.isArray(parsed)) {
-                    customCategories = parsed.filter((cat: Category) =>
-                        cat && !allCategories.some(existingCat => existingCat?.id === cat.id)
-                    );
+                    customCategories = parsed;
                 }
             }
 
-            const finalCategories = [...allCategories, ...customCategories];
+            // Si Sanity a du contenu : utiliser UNIQUEMENT Sanity + custom
+            // Sinon : utiliser DEFAULT_CATEGORIES + custom
+            const baseCategories = sanityCategories.length > 0 
+                ? sanityCategories 
+                : DEFAULT_CATEGORIES;
+
+            const finalCategories = [...baseCategories, ...customCategories];
             setCategories(finalCategories);
 
-            // Sauvegarder les catégories fusionnées
+            // Sauvegarder l'état fusionné
             await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(finalCategories));
 
         } catch (e) {
@@ -126,6 +123,19 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
             saveCategories(updated);
             return updated;
         });
+
+        // Sauvegarder dans les custom categories
+        const stored = await AsyncStorage.getItem(CUSTOM_CATEGORIES_KEY);
+        let customCats: Category[] = [];
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed)) {
+                customCats = parsed;
+            }
+        }
+        customCats.push(newCat);
+        await AsyncStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCats));
+
         return newCat;
     }, []);
 
@@ -136,6 +146,16 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
             saveCategories(updated);
             return updated;
         });
+
+        // Retirer des custom categories si présente
+        const stored = await AsyncStorage.getItem(CUSTOM_CATEGORIES_KEY);
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed)) {
+                const updated = parsed.filter((c: Category) => c.id !== id);
+                await AsyncStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(updated));
+            }
+        }
     }, []);
 
     const updateCategory = useCallback(async (id: string, partial: Partial<Category>) => {
@@ -144,6 +164,18 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
             saveCategories(updated);
             return updated;
         });
+
+        // Mettre à jour dans les custom categories si présente
+        const stored = await AsyncStorage.getItem(CUSTOM_CATEGORIES_KEY);
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed)) {
+                const updated = parsed.map((c: Category) => 
+                    c.id === id ? { ...c, ...partial } : c
+                );
+                await AsyncStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(updated));
+            }
+        }
     }, []);
 
     return (
