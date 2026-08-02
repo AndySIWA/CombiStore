@@ -1,4 +1,4 @@
-import {createClient} from '@sanity/client'
+import { createClient } from '@sanity/client'
 
 export const client = createClient({
   projectId: process.env.EXPO_PUBLIC_SANITY_PROJECT_ID || '7a6tocy4',
@@ -11,7 +11,7 @@ export const getRemoteAppsQuery = `*[_type == "miniApp"] {
   "id": _id,
   name,
   description,
-  "categoryId": lower(category->name.current),
+  "categoryId": lower(category->name),
   sourceType,
   source,
   "icon": coalesce(icon, "🌐"),
