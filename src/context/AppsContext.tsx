@@ -6,6 +6,7 @@ import { DEMO_APPS } from '../constants/demoApps';
 import { client, getRemoteAppsQuery } from '../lib/sanity';
 
 const STORAGE_KEY = '@combistore_apps';
+const CUSTOM_APPS_KEY = '@combistore_custom_apps';
 
 const syncImportedApps = (localApps: MiniApp[] = [], remoteApps: RemoteApp[] = []) => {
     const safeLocalApps = Array.isArray(localApps) ? localApps : [];
@@ -85,13 +86,25 @@ export function AppsProvider({ children }: { children: ReactNode }) {
             const data = await client.fetch<RemoteApp[]>(getRemoteAppsQuery);
             if (data && data.length > 0) {
                 setRemoteApps(data);
-                setApps(prevApps => {
-                    const updated = syncImportedApps(baseApps ?? prevApps, data);
-                    saveApps(updated);
-                    return updated;
-                });
+
+                // Charger les apps personnalisées créées par l'utilisateur
+                const customStored = await AsyncStorage.getItem(CUSTOM_APPS_KEY);
+                let customApps: MiniApp[] = [];
+                if (customStored) {
+                    const parsed = JSON.parse(customStored);
+                    if (Array.isArray(parsed)) {
+                        customApps = parsed;
+                    }
+                }
+
+                // Mettre à jour les apps importées avec les données Sanity
+                const importedApps = syncImportedApps(baseApps ?? [], data);
+                // Combiner : apps importées (mises à jour) + apps personnalisées créées
+                const combined = [...importedApps, ...customApps];
+
+                setApps(combined);
+                saveApps(combined);
             } else {
-                //alert('Aucune app trouvée dans Sanity');
                 throw new Error('Aucune app trouvée dans Sanity');
             }
         } catch (e) {
@@ -136,6 +149,19 @@ export function AppsProvider({ children }: { children: ReactNode }) {
             saveApps(updated);
             return updated;
         });
+
+        // Sauvegarder dans les custom apps
+        const stored = await AsyncStorage.getItem(CUSTOM_APPS_KEY);
+        let customApps: MiniApp[] = [];
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed)) {
+                customApps = parsed;
+            }
+        }
+        customApps.push(newApp);
+        await AsyncStorage.setItem(CUSTOM_APPS_KEY, JSON.stringify(customApps));
+
         return newApp;
     }, []);
 
@@ -168,6 +194,16 @@ export function AppsProvider({ children }: { children: ReactNode }) {
             saveApps(updated);
             return updated;
         });
+
+        // Retirer des custom apps si présente
+        const stored = await AsyncStorage.getItem(CUSTOM_APPS_KEY);
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed)) {
+                const updated = parsed.filter((a: MiniApp) => a.id !== id);
+                await AsyncStorage.setItem(CUSTOM_APPS_KEY, JSON.stringify(updated));
+            }
+        }
     }, []);
 
     const updateApp = useCallback(async (id: string, partial: Partial<MiniApp>) => {
@@ -176,6 +212,18 @@ export function AppsProvider({ children }: { children: ReactNode }) {
             saveApps(updated);
             return updated;
         });
+
+        // Mettre à jour dans les custom apps si présente
+        const stored = await AsyncStorage.getItem(CUSTOM_APPS_KEY);
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed)) {
+                const updated = parsed.map((a: MiniApp) => 
+                    a.id === id ? { ...a, ...partial } : a
+                );
+                await AsyncStorage.setItem(CUSTOM_APPS_KEY, JSON.stringify(updated));
+            }
+        }
     }, []);
 
     return (
