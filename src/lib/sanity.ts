@@ -11,7 +11,7 @@ export const getRemoteAppsQuery = `*[_type == "miniApp"] {
   "id": _id,
   name,
   description,
-  "categoryId": category->name,
+  "categoryId": category->name.current,
   sourceType,
   source,
   "icon": coalesce(icon, "🌐"),
@@ -23,7 +23,7 @@ export const getRemoteAppsQuery = `*[_type == "miniApp"] {
 } | order(lastUpdated desc)`
 
 export const getCategoriesQuery = `*[_type == "category"] {
-  "id": _id,
+  "id": name.current,
   name,
   title,
   description,
@@ -35,7 +35,7 @@ export const getFeaturedAppsQuery = `*[_type == "miniApp" && featured == true] {
   "id": _id,
   name,
   description,
-  "categoryId": category->name,
+  "categoryId": category->name.current,
   sourceType,
   source,
   icon,
@@ -61,4 +61,3 @@ export const getDeveloperQuery = `*[_type == "developer"][0] {
     portfolio
   }
 }`
-
