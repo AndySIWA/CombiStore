@@ -50,6 +50,16 @@ export const SAMPLE_APPS: MiniApp[] = [
         icon: '🍅',
         addedAt: Date.now(),
     },
+    {
+        id: 'cloud_chess',
+        name: 'Chess Online',
+        description: 'Défiez des joueurs du monde entier au échecs.',
+        categoryId: 'games',
+        sourceType: 'url',
+        source: 'https://lichess.org',
+        icon: '♟️',
+        addedAt: Date.now(),
+    },
 ];
 
 export const CATEGORY_COLORS = [

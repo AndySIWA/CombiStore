@@ -2,7 +2,6 @@ import React, { createContext, useContext, useState, useEffect, useCallback, Rea
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MiniApp, RemoteApp } from '../types';
 import { SAMPLE_APPS } from '../constants/defaults';
-import { DEMO_APPS } from '../constants/demoApps';
 import { client, getRemoteAppsQuery } from '../lib/sanity';
 
 const STORAGE_KEY = '@combistore_apps';
@@ -106,7 +105,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
 
                 setApps(combined);
                 saveApps(combined);
-                
+
                 // Marquer comme initialisé
                 await AsyncStorage.setItem(INITIALIZED_KEY, 'true');
             } else {
@@ -114,8 +113,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
             }
         } catch (e) {
             console.warn('[AppsContext] Erreur Sanity, chargement des démos...', e);
-            setRemoteApps(DEMO_APPS);
-            
+
             // Seulement charger SAMPLE_APPS en fallback si pas encore initialisé
             const isInitialized = await AsyncStorage.getItem(INITIALIZED_KEY);
             if (!isInitialized) {
@@ -231,7 +229,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
         if (stored) {
             const parsed = JSON.parse(stored);
             if (Array.isArray(parsed)) {
-                const updated = parsed.map((a: MiniApp) => 
+                const updated = parsed.map((a: MiniApp) =>
                     a.id === id ? { ...a, ...partial } : a
                 );
                 await AsyncStorage.setItem(CUSTOM_APPS_KEY, JSON.stringify(updated));
