@@ -18,7 +18,6 @@ export default function ViewerScreen() {
     const app = apps.find(a => a.id === id) || remoteApps.find(a => a.id === id);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
-    const [blocked, setBlocked] = useState(false);
     const webViewRef = useRef<any>(null);
 
     const openExternal = async () => {
@@ -37,12 +36,9 @@ export default function ViewerScreen() {
     React.useEffect(() => {
         if (Platform.OS === 'web' && app?.sourceType === 'url' && typeof window !== 'undefined') {
             window.open(app.source, '_blank', 'noopener,noreferrer');
-            // Note: On web only, we return after opening the link
-            // On native, the modal dismisses naturally
         }
     }, [app?.source, app?.sourceType]);
 
-     // Fade in top bar or maintain as minimal overlay
     if (!app) {
         return (
             <View style={styles.center}>
@@ -55,7 +51,7 @@ export default function ViewerScreen() {
                         router.replace('/(tabs)');
                     }
                 }} style={styles.backBtn}>
-                    <Text style={styles.backText}>← Retour</Text>
+                    <Text style={styles.backText}>← Retour aux apps</Text>
                 </TouchableOpacity>
             </View>
         );
@@ -75,30 +71,58 @@ export default function ViewerScreen() {
 
             <View style={styles.topInfo}>
                 <Text style={styles.appTitle} numberOfLines={1}>{app.name}</Text>
+                <View style={styles.badgeRow}>
+                    <Text style={[styles.modeBadge, { color: app.sourceType === 'html' ? '#10b981' : '#60a5fa' }]}>
+                        {app.sourceType === 'html' ? '⚡ 100% Hors-ligne' : '🌐 Web App'}
+                    </Text>
+                </View>
             </View>
 
+            {Platform.OS !== 'web' && (
+                <TouchableOpacity
+                    style={styles.reloadBtn}
+                    onPress={() => {
+                        setError(false);
+                        setLoading(true);
+                        webViewRef.current?.reload();
+                    }}
+                >
+                    <Text style={styles.reloadIcon}>↻</Text>
+                </TouchableOpacity>
+            )}
+
             {app.sourceType === 'url' && (
-                <>
-                    {Platform.OS !== 'web' && (
-                        <TouchableOpacity
-                            style={styles.reloadBtn}
-                            onPress={() => webViewRef.current?.reload()}
-                        >
-                            <Text style={styles.reloadIcon}>↻</Text>
-                        </TouchableOpacity>
-                    )}
-                    <TouchableOpacity
-                        style={[styles.reloadBtn, styles.externalBtn]}
-                        onPress={openExternal}
-                    >
-                        <Text style={styles.reloadIcon}>🌐</Text>
-                    </TouchableOpacity>
-                </>
+                <TouchableOpacity
+                    style={[styles.reloadBtn, styles.externalBtn]}
+                    onPress={openExternal}
+                >
+                    <Text style={styles.reloadIcon}>🌐</Text>
+                </TouchableOpacity>
             )}
         </View>
     );
 
-    // Web platform: redirect URL apps, display HTML apps in iframe
+    // Formatter le HTML si nécessaire pour garantir un rendu responsive et encodé
+    const formatHtmlSource = (rawHtml: string) => {
+        if (rawHtml.includes('<!DOCTYPE html>') || rawHtml.includes('<html')) {
+            return rawHtml;
+        }
+        return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <style>
+    body { margin: 0; padding: 16px; font-family: -apple-system, system-ui, sans-serif; background: #0f172a; color: #f8fafc; }
+  </style>
+</head>
+<body>
+  ${rawHtml}
+</body>
+</html>`;
+    };
+
+    // Web platform
     if (Platform.OS === 'web') {
         if (app.sourceType === 'url') {
             return (
@@ -109,8 +133,8 @@ export default function ViewerScreen() {
             );
         }
 
-        // HTML content: display in iframe
-        const htmlDataUrl = `data:text/html;charset=utf-8,${encodeURIComponent(app.source)}`;
+        const formattedHtml = formatHtmlSource(app.source);
+        const htmlDataUrl = `data:text/html;charset=utf-8,${encodeURIComponent(formattedHtml)}`;
         return (
             <View style={styles.container}>
                 {topBar}
@@ -119,36 +143,54 @@ export default function ViewerScreen() {
                     style={{ flex: 1, border: 'none', width: '100%', height: '100%' }}
                     title={app.name}
                     onLoad={() => setLoading(false)}
-                    onError={() => { setLoading(false); setError(true); setBlocked(true); }}
-                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                    onError={() => { setLoading(false); setError(true); }}
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
                 />
             </View>
         );
     }
 
-    // Native: use react-native-webview
+    // Native: react-native-webview avec stratégie de cache agressif
     const source = app.sourceType === 'url'
         ? { uri: app.source }
-        : { html: app.source };
+        : { html: formatHtmlSource(app.source) };
 
     return (
         <View style={styles.container}>
-            {/* WebView is truly edge to edge */}
             {error ? (
                 <View style={styles.center}>
-                    <Text style={styles.errorIcon}>⚠️</Text>
-                    <Text style={styles.errorText}>Impossible de charger cette app.</Text>
-                    <TouchableOpacity
-                        onPress={() => { setError(false); setLoading(true); setBlocked(false); webViewRef.current?.reload(); }}
-                        style={styles.retryBtn}
-                    >
-                        <Text style={styles.retryText}>Réessayer</Text>
-                    </TouchableOpacity>
-                    {app.sourceType === 'url' && (
-                        <TouchableOpacity onPress={openExternal} style={[styles.openExternalBtn, { borderWidth: 1, borderColor: COLORS.border }]}> 
-                            <Text style={styles.openExternalText}>Ouvrir dans le navigateur</Text>
+                    <Text style={styles.errorIcon}>{app.sourceType === 'url' ? '📡' : '⚠️'}</Text>
+                    <Text style={styles.errorTitle}>
+                        {app.sourceType === 'url' ? 'Connexion Internet Requise' : 'Erreur de chargement'}
+                    </Text>
+                    <Text style={styles.errorText}>
+                        {app.sourceType === 'url'
+                            ? `"${app.name}" est un site web en ligne qui nécessite une connexion réseau active pour être chargé.`
+                            : `Impossible d'exécuter le code de l'application "${app.name}".`}
+                    </Text>
+                    <View style={styles.errorActions}>
+                        <TouchableOpacity
+                            onPress={() => { setError(false); setLoading(true); webViewRef.current?.reload(); }}
+                            style={styles.retryBtn}
+                        >
+                            <Text style={styles.retryText}>Réessayer ↺</Text>
                         </TouchableOpacity>
-                    )}
+
+                        {app.sourceType === 'url' && (
+                            <TouchableOpacity onPress={openExternal} style={styles.openExternalBtn}>
+                                <Text style={styles.openExternalText}>Ouvrir dans le navigateur</Text>
+                            </TouchableOpacity>
+                        )}
+
+                        <TouchableOpacity
+                            onPress={() => {
+                                try { router.back(); } catch (_) { router.replace('/(tabs)'); }
+                            }}
+                            style={styles.backBtn}
+                        >
+                            <Text style={styles.backText}>← Revenir au catalogue</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
             ) : (
                 <View style={{ flex: 1 }}>
@@ -160,6 +202,9 @@ export default function ViewerScreen() {
                         onError={() => { setLoading(false); setError(true); }}
                         javaScriptEnabled={true}
                         domStorageEnabled={true}
+                        cacheEnabled={true}
+                        cacheMode="LOAD_CACHE_ELSE_NETWORK"
+                        sharedCookiesEnabled={true}
                         allowsInlineMediaPlayback={true}
                         mediaPlaybackRequiresUserAction={false}
                         originWhitelist={['*']}
@@ -168,10 +213,10 @@ export default function ViewerScreen() {
                 </View>
             )}
 
-            {/* Top Bar as Overlay */}
+            {/* Top Bar as Glassmorphism Overlay */}
             {topBar}
 
-            {loading && (
+            {loading && !error && (
                 <View style={styles.loadingOverlay}>
                     <ActivityIndicator size="large" color={COLORS.accent} />
                     <Text style={styles.loadingText}>Lancement de {app.name}...</Text>
@@ -182,7 +227,7 @@ export default function ViewerScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#000' }, // True black background for edge-to-edge
+    container: { flex: 1, backgroundColor: '#090D16' },
     topBarOverlay: {
         position: 'absolute',
         top: 0,
@@ -190,21 +235,23 @@ const styles = StyleSheet.create({
         right: 0,
         flexDirection: 'row',
         alignItems: 'center',
-        paddingTop: Platform.OS === 'ios' ? 54 : 36,
+        paddingTop: Platform.OS === 'ios' ? 54 : 38,
         paddingHorizontal: 16,
         paddingBottom: 12,
-        backgroundColor: 'rgba(15, 17, 21, 0.4)', // Glassmorphism-style overlay
+        backgroundColor: 'rgba(15, 23, 42, 0.75)',
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(255, 255, 255, 0.08)',
         zIndex: 10,
     },
     closeBtn: {
         width: 36,
         height: 36,
         borderRadius: 18,
-        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+        backgroundColor: 'rgba(255, 255, 255, 0.08)',
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderColor: 'rgba(255, 255, 255, 0.12)',
     },
     closeBtnText: {
         color: COLORS.white,
@@ -216,20 +263,28 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     appTitle: {
-        fontFamily: FONT.medium,
+        fontFamily: FONT.bold,
         fontSize: 15,
         color: COLORS.white,
+    },
+    badgeRow: {
+        flexDirection: 'row',
+        marginTop: 2,
+    },
+    modeBadge: {
+        fontFamily: FONT.medium,
+        fontSize: 11,
         opacity: 0.9,
     },
     reloadBtn: {
         width: 36,
         height: 36,
         borderRadius: 18,
-        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+        backgroundColor: 'rgba(255, 255, 255, 0.08)',
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderColor: 'rgba(255, 255, 255, 0.12)',
     },
     reloadIcon: {
         color: COLORS.white,
@@ -257,34 +312,36 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         padding: 30,
-        backgroundColor: COLORS.bg,
+        backgroundColor: '#0F1115',
     },
-    errorIcon: { fontSize: 52, marginBottom: 20 },
-    errorText: {
+    errorIcon: { fontSize: 56, marginBottom: 16 },
+    errorTitle: {
         fontFamily: FONT.bold,
-        fontSize: 18,
-        color: COLORS.text,
-        marginBottom: 20,
+        fontSize: 20,
+        color: COLORS.white,
+        marginBottom: 8,
         textAlign: 'center',
     },
-    backBtn: {
-        paddingHorizontal: 24,
-        paddingVertical: 12,
-        backgroundColor: COLORS.surface,
-        borderRadius: 100,
-        borderWidth: 1,
-        borderColor: COLORS.border,
-    },
-    backText: {
-        fontFamily: FONT.medium,
+    errorText: {
+        fontFamily: FONT.regular,
         fontSize: 14,
-        color: COLORS.accent,
+        color: COLORS.textSecondary,
+        marginBottom: 28,
+        textAlign: 'center',
+        lineHeight: 20,
+        maxWidth: 320,
+    },
+    errorActions: {
+        width: '100%',
+        maxWidth: 280,
+        gap: 12,
+        alignItems: 'stretch',
     },
     retryBtn: {
-        paddingHorizontal: 24,
-        paddingVertical: 12,
+        paddingVertical: 14,
         backgroundColor: COLORS.accent,
         borderRadius: 100,
+        alignItems: 'center',
     },
     retryText: {
         fontFamily: FONT.bold,
@@ -292,35 +349,29 @@ const styles = StyleSheet.create({
         color: COLORS.white,
     },
     openExternalBtn: {
-        marginTop: 12,
-        backgroundColor: COLORS.surface,
-        borderColor: COLORS.border,
+        paddingVertical: 14,
+        backgroundColor: 'rgba(255, 255, 255, 0.08)',
+        borderRadius: 100,
         borderWidth: 1,
+        borderColor: COLORS.border,
+        alignItems: 'center',
     },
     openExternalText: {
         fontFamily: FONT.bold,
         fontSize: 14,
         color: COLORS.accent,
     },
-    externalBtn: {
-        marginLeft: 10,
-        backgroundColor: 'rgba(255,255,255,0.08)',
-    },
-    blockedInfo: {
-        position: 'absolute',
-        bottom: 24,
-        left: 24,
-        right: 24,
-        padding: 14,
-        borderRadius: 18,
-        backgroundColor: 'rgba(255,255,255,0.9)',
+    backBtn: {
+        paddingVertical: 14,
+        backgroundColor: 'transparent',
         alignItems: 'center',
     },
-    blockedText: {
+    backText: {
         fontFamily: FONT.medium,
         fontSize: 14,
-        color: '#111',
-        marginBottom: 10,
-        textAlign: 'center',
+        color: COLORS.textMuted,
+    },
+    externalBtn: {
+        marginLeft: 8,
     },
 });

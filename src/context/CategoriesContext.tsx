@@ -35,60 +35,65 @@ const getSanityCategoryId = (cat: SanityCategory) => {
 };
 
 export function CategoriesProvider({ children }: { children: ReactNode }) {
-    const [categories, setCategories] = useState<Category[]>([]);
+    const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
     const [loading, setLoading] = useState(true);
 
     const loadCategories = useCallback(async () => {
+        // 1. Charger immédiatement le cache local
         try {
-            // Récupérer les catégories de Sanity
-            const remoteCategories = await client.fetch<SanityCategory[]>(getCategoriesQuery);
-
-            // Convertir les catégories Sanity au format local
-            const sanityCategories: Category[] = remoteCategories
-                .map(cat => ({
-                    id: getSanityCategoryId(cat),
-                    name: cat.title,
-                    color: cat.color,
-                    icon: cat.icon,
-                }))
-                .filter((cat): cat is Category =>
-                    Boolean(cat.id && cat.name && cat.color && cat.icon)
-                );
-
-            // Charger les catégories personnalisées locales (créées par l'utilisateur)
-            const stored = await AsyncStorage.getItem(CUSTOM_CATEGORIES_KEY);
-            let customCategories: Category[] = [];
-            if (stored) {
-                const parsed = JSON.parse(stored);
-                if (Array.isArray(parsed)) {
-                    customCategories = parsed;
-                }
-            }
-
-            // Si Sanity a du contenu : utiliser UNIQUEMENT Sanity + custom
-            // Sinon : utiliser DEFAULT_CATEGORIES + custom
-            const baseCategories = sanityCategories.length > 0 
-                ? sanityCategories 
-                : DEFAULT_CATEGORIES;
-
-            const finalCategories = [...baseCategories, ...customCategories];
-            setCategories(finalCategories);
-
-            // Sauvegarder l'état fusionné
-            await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(finalCategories));
-
-        } catch (e) {
-            console.warn('[CategoriesContext] Erreur Sanity, chargement des catégories locales...', e);
-            // Fallback aux catégories locales
             const stored = await AsyncStorage.getItem(STORAGE_KEY);
             if (stored) {
                 const parsed = JSON.parse(stored);
-                if (Array.isArray(parsed)) {
+                if (Array.isArray(parsed) && parsed.length > 0) {
                     setCategories(parsed);
-                } else {
-                    setCategories(DEFAULT_CATEGORIES);
                 }
-            } else {
+            }
+        } catch (_) {}
+
+        // 2. Tenter de rafraîchir avec Sanity en arrière-plan
+        try {
+            const fetchPromise = client.fetch<SanityCategory[]>(getCategoriesQuery);
+            const timeoutPromise = new Promise<never>((_, reject) =>
+                setTimeout(() => reject(new Error('Sanity categories timeout')), 8000)
+            );
+
+            const remoteCategories = await Promise.race([fetchPromise, timeoutPromise]);
+
+            if (remoteCategories && Array.isArray(remoteCategories) && remoteCategories.length > 0) {
+                // Convertir les catégories Sanity au format local
+                const sanityCategories: Category[] = remoteCategories
+                    .map(cat => ({
+                        id: getSanityCategoryId(cat),
+                        name: cat.title,
+                        color: cat.color,
+                        icon: cat.icon,
+                    }))
+                    .filter((cat): cat is Category =>
+                        Boolean(cat.id && cat.name && cat.color && cat.icon)
+                    );
+
+                // Charger les catégories personnalisées locales
+                const customStored = await AsyncStorage.getItem(CUSTOM_CATEGORIES_KEY);
+                let customCategories: Category[] = [];
+                if (customStored) {
+                    const parsed = JSON.parse(customStored);
+                    if (Array.isArray(parsed)) {
+                        customCategories = parsed;
+                    }
+                }
+
+                const baseCategories = sanityCategories.length > 0
+                    ? sanityCategories
+                    : DEFAULT_CATEGORIES;
+
+                const finalCategories = [...baseCategories, ...customCategories];
+                setCategories(finalCategories);
+                await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(finalCategories));
+            }
+        } catch (e) {
+            console.warn('[CategoriesContext] Utilisation des catégories en cache / défaut :', e);
+            const stored = await AsyncStorage.getItem(STORAGE_KEY);
+            if (!stored) {
                 await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_CATEGORIES));
                 setCategories(DEFAULT_CATEGORIES);
             }
@@ -170,7 +175,7 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
         if (stored) {
             const parsed = JSON.parse(stored);
             if (Array.isArray(parsed)) {
-                const updated = parsed.map((c: Category) => 
+                const updated = parsed.map((c: Category) =>
                     c.id === id ? { ...c, ...partial } : c
                 );
                 await AsyncStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(updated));

@@ -14,16 +14,6 @@ interface AppCardProps {
     onAction?: () => void;
 }
 
-/**
- * Static AppCard (Original Non-Animated Version)
- * 
- * ⚠️ For new implementations, use AnimatedCard instead!
- * 
- * This component is kept for compatibility but AnimatedCard is recommended
- * as it provides superior UX with entrance animations and press feedback.
- * 
- * @see AnimatedCard for the enhanced animated version
- */
 export const AppCard = ({ app, category, onPress, onLongPress, isInstalled, actionLabel, onAction }: AppCardProps) => {
     const { theme, mode } = useTheme();
     const isFeatured = false;
@@ -33,6 +23,7 @@ export const AppCard = ({ app, category, onPress, onLongPress, isInstalled, acti
 
     const catColor = category?.color || theme.accent;
     const badgeColor = mode === 'dark' ? '#4B5563' : '#D1D5DB';
+    const isOfflineReady = app.sourceType === 'html';
 
     return (
         <TouchableOpacity
@@ -53,21 +44,38 @@ export const AppCard = ({ app, category, onPress, onLongPress, isInstalled, acti
                             </View>
                         )}
 
-                        {/* Icon Bubble */}
-                        <View style={[
-                            styles.iconBubble,
-                            { backgroundColor: catColor + '15', borderColor: catColor + '30' },
-                            isFeatured && styles.iconBubbleFeatured
-                        ]}>
-                            {isImageIcon ? (
-                                <Image
-                                    source={{ uri: iconValue }}
-                                    style={[styles.iconImage, isFeatured && styles.iconImageFeatured]}
-                                    resizeMode="contain"
-                                />
-                            ) : (
-                                <Text style={[styles.iconText, isFeatured && styles.iconTextFeatured]}>{displayIcon}</Text>
-                            )}
+                        <View style={styles.headerRow}>
+                            {/* Icon Bubble */}
+                            <View style={[
+                                styles.iconBubble,
+                                { backgroundColor: catColor + '15', borderColor: catColor + '30' },
+                                isFeatured && styles.iconBubbleFeatured
+                            ]}>
+                                {isImageIcon ? (
+                                    <Image
+                                        source={{ uri: iconValue }}
+                                        style={[styles.iconImage, isFeatured && styles.iconImageFeatured]}
+                                        resizeMode="contain"
+                                    />
+                                ) : (
+                                    <Text style={[styles.iconText, isFeatured && styles.iconTextFeatured]}>{displayIcon}</Text>
+                                )}
+                            </View>
+
+                            {/* Offline Tag */}
+                            <View style={[
+                                styles.modeTag,
+                                isOfflineReady
+                                    ? { backgroundColor: 'rgba(16, 185, 129, 0.12)', borderColor: 'rgba(16, 185, 129, 0.25)' }
+                                    : { backgroundColor: 'rgba(59, 130, 246, 0.12)', borderColor: 'rgba(59, 130, 246, 0.25)' }
+                            ]}>
+                                <Text style={[
+                                    styles.modeTagText,
+                                    { color: isOfflineReady ? '#10b981' : '#60a5fa' }
+                                ]}>
+                                    {isOfflineReady ? '⚡ Offline' : '🌐 Web'}
+                                </Text>
+                            </View>
                         </View>
 
                         {/* Text Content */}
@@ -105,9 +113,9 @@ const styles = StyleSheet.create({
     },
     card: {
         borderRadius: 22,
-        padding: 18,
+        padding: 16,
         borderWidth: 1,
-        minHeight: 140,
+        minHeight: 146,
         position: 'relative',
     },
     cardFeatured: {
@@ -127,18 +135,18 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 8,
         right: 8,
-        width: 24,
-        height: 24,
-        borderRadius: 12,
+        width: 22,
+        height: 22,
+        borderRadius: 11,
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 10,
     },
     installedCheckmark: {
         fontFamily: FONT.bold,
-        fontSize: 14,
+        fontSize: 12,
         color: COLORS.white,
-        lineHeight: 16,
+        lineHeight: 14,
     },
     contentDefault: {
         flex: 1,
@@ -149,25 +157,30 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         gap: 16,
     },
+    headerRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        marginBottom: 10,
+    },
     iconBubble: {
-        width: 58,
-        height: 58,
-        borderRadius: 20,
+        width: 52,
+        height: 52,
+        borderRadius: 18,
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 14,
         borderWidth: 1.5,
     },
     iconBubbleFeatured: {
         marginBottom: 0,
-        width: 68,
-        height: 68,
+        width: 64,
+        height: 64,
     },
     iconText: {
-        fontSize: 32,
+        fontSize: 28,
     },
     iconTextFeatured: {
-        fontSize: 36,
+        fontSize: 32,
     },
     iconImage: {
         width: '60%',
@@ -178,29 +191,40 @@ const styles = StyleSheet.create({
         width: '70%',
         height: '70%',
     },
+    modeTag: {
+        paddingHorizontal: 7,
+        paddingVertical: 3,
+        borderRadius: 8,
+        borderWidth: 1,
+    },
+    modeTagText: {
+        fontFamily: FONT.bold,
+        fontSize: 10,
+        letterSpacing: 0.2,
+    },
     content: {
         flex: 1,
     },
     appName: {
         fontFamily: FONT.bold,
-        fontSize: 16,
+        fontSize: 15,
         marginBottom: 4,
     },
     appDesc: {
         fontFamily: FONT.medium,
-        fontSize: 13,
-        lineHeight: 18,
+        fontSize: 12,
+        lineHeight: 16,
         opacity: 0.85,
     },
     actionBtn: {
         marginTop: 10,
-        paddingVertical: 8,
-        borderRadius: 14,
+        paddingVertical: 7,
+        borderRadius: 12,
         borderWidth: 1,
         alignItems: 'center',
     },
     actionBtnText: {
         fontFamily: FONT.bold,
-        fontSize: 13,
+        fontSize: 12,
     },
 });

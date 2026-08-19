@@ -7,6 +7,7 @@ import { client, getRemoteAppsQuery } from '../lib/sanity';
 const STORAGE_KEY = '@combistore_apps';
 const CUSTOM_APPS_KEY = '@combistore_custom_apps';
 const INITIALIZED_KEY = '@combistore_initialized';
+const REMOTE_CACHE_KEY = '@combistore_remote_apps_cache';
 
 const syncImportedApps = (localApps: MiniApp[] = [], remoteApps: RemoteApp[] = []) => {
     const safeLocalApps = Array.isArray(localApps) ? localApps : [];
@@ -43,6 +44,7 @@ interface AppsContextType {
     remoteApps: RemoteApp[];
     loading: boolean;
     refreshingRemote: boolean;
+    isOffline: boolean;
     addApp: (app: Omit<MiniApp, 'id' | 'addedAt'>) => Promise<MiniApp>;
     removeApp: (id: string) => Promise<void>;
     updateApp: (id: string, partial: Partial<MiniApp>) => Promise<void>;
@@ -57,83 +59,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
     const [remoteApps, setRemoteApps] = useState<RemoteApp[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshingRemote, setRefreshingRemote] = useState(false);
-
-    const loadApps = useCallback(async () => {
-        try {
-            const stored = await AsyncStorage.getItem(STORAGE_KEY);
-            if (stored) {
-                const parsedApps = JSON.parse(stored);
-                if (Array.isArray(parsedApps)) {
-                    setApps(parsedApps);
-                    return parsedApps;
-                }
-            }
-            // Ne pas initialiser avec SAMPLE_APPS ici - on laisse Sanity faire le premier chargement
-            setApps([]);
-            return [];
-        } catch (e) {
-            console.error('Error loading apps:', e);
-            setApps([]);
-            return [];
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
-    const fetchRemoteApps = useCallback(async (baseApps?: MiniApp[]) => {
-        setRefreshingRemote(true);
-        try {
-            const data = await client.fetch<RemoteApp[]>(getRemoteAppsQuery);
-            if (data && data.length > 0) {
-                setRemoteApps(data);
-
-                // Charger les apps personnalisées créées par l'utilisateur
-                const customStored = await AsyncStorage.getItem(CUSTOM_APPS_KEY);
-                let customApps: MiniApp[] = [];
-                if (customStored) {
-                    const parsed = JSON.parse(customStored);
-                    if (Array.isArray(parsed)) {
-                        customApps = parsed;
-                    }
-                }
-
-                // Mettre à jour les apps importées avec les données Sanity
-                const importedApps = syncImportedApps(baseApps ?? [], data);
-                // Combiner : apps importées (mises à jour) + apps personnalisées créées
-                // IMPORTANT: ne PAS inclure SAMPLE_APPS ici !
-                const combined = [...importedApps, ...customApps];
-
-                setApps(combined);
-                saveApps(combined);
-
-                // Marquer comme initialisé
-                await AsyncStorage.setItem(INITIALIZED_KEY, 'true');
-            } else {
-                throw new Error('Aucune app trouvée dans Sanity');
-            }
-        } catch (e) {
-            console.warn('[AppsContext] Erreur Sanity, chargement des démos...', e);
-
-            // Seulement charger SAMPLE_APPS en fallback si pas encore initialisé
-            const isInitialized = await AsyncStorage.getItem(INITIALIZED_KEY);
-            if (!isInitialized) {
-                setApps(SAMPLE_APPS);
-                saveApps(SAMPLE_APPS);
-                await AsyncStorage.setItem(INITIALIZED_KEY, 'true');
-            }
-        } finally {
-            setRefreshingRemote(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        const initializeApps = async () => {
-            const loadedApps = await loadApps();
-            await fetchRemoteApps(loadedApps);
-        };
-
-        initializeApps();
-    }, [loadApps, fetchRemoteApps]);
+    const [isOffline, setIsOffline] = useState(false);
 
     const saveApps = async (newApps: MiniApp[]) => {
         try {
@@ -146,6 +72,130 @@ export function AppsProvider({ children }: { children: ReactNode }) {
             console.error('Error saving apps:', e);
         }
     };
+
+    const saveRemoteAppsCache = async (cached: RemoteApp[]) => {
+        try {
+            if (Array.isArray(cached)) {
+                await AsyncStorage.setItem(REMOTE_CACHE_KEY, JSON.stringify(cached));
+            }
+        } catch (e) {
+            console.error('Error saving remote apps cache:', e);
+        }
+    };
+
+    const loadApps = useCallback(async () => {
+        try {
+            // 1. Charger les apps locales enregistrées
+            const stored = await AsyncStorage.getItem(STORAGE_KEY);
+            let parsedApps: MiniApp[] = [];
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                if (Array.isArray(parsed)) {
+                    parsedApps = parsed;
+                    setApps(parsedApps);
+                }
+            }
+
+            // 2. Charger le cache persistant des remote apps (catalogue Explorer)
+            const storedRemote = await AsyncStorage.getItem(REMOTE_CACHE_KEY);
+            if (storedRemote) {
+                const parsedRemote = JSON.parse(storedRemote);
+                if (Array.isArray(parsedRemote) && parsedRemote.length > 0) {
+                    setRemoteApps(parsedRemote);
+                }
+            } else if (parsedApps.length === 0) {
+                // Premier démarrage hors-ligne sans cache : charger les apps démo intégrées
+                setApps(SAMPLE_APPS);
+                saveApps(SAMPLE_APPS);
+            }
+
+            return parsedApps;
+        } catch (e) {
+            console.error('Error loading apps:', e);
+            setApps(SAMPLE_APPS);
+            return SAMPLE_APPS;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const fetchRemoteApps = useCallback(async (baseApps?: MiniApp[]) => {
+        setRefreshingRemote(true);
+        try {
+            // Requête Sanity avec timeout pour éviter les blocages infinis en cas de réseau lent
+            const fetchPromise = client.fetch<RemoteApp[]>(getRemoteAppsQuery);
+            const timeoutPromise = new Promise<never>((_, reject) =>
+                setTimeout(() => reject(new Error('Sanity fetch timeout')), 8000)
+            );
+
+            const data = await Promise.race([fetchPromise, timeoutPromise]);
+
+            if (data && data.length > 0) {
+                setRemoteApps(data);
+                saveRemoteAppsCache(data);
+                setIsOffline(false);
+
+                // Charger les apps personnalisées créées par l'utilisateur
+                const customStored = await AsyncStorage.getItem(CUSTOM_APPS_KEY);
+                let customApps: MiniApp[] = [];
+                if (customStored) {
+                    const parsed = JSON.parse(customStored);
+                    if (Array.isArray(parsed)) {
+                        customApps = parsed;
+                    }
+                }
+
+                // Synchroniser les apps déjà installées avec les métadonnées Sanity fraîches
+                const currentLocal = baseApps !== undefined ? baseApps : apps;
+                const importedApps = syncImportedApps(currentLocal, data);
+                const combined = [...importedApps, ...customApps];
+
+                setApps(combined);
+                saveApps(combined);
+                await AsyncStorage.setItem(INITIALIZED_KEY, 'true');
+            } else {
+                throw new Error('Aucune app trouvée dans Sanity');
+            }
+        } catch (e) {
+            console.warn('[AppsContext] Mode hors-ligne actif (Sanity inaccessible) :', e);
+            setIsOffline(true);
+
+            // En cas d'échec : préserver absolument les apps en cache local
+            const stored = await AsyncStorage.getItem(STORAGE_KEY);
+            const storedRemote = await AsyncStorage.getItem(REMOTE_CACHE_KEY);
+
+            let currentApps: MiniApp[] = [];
+            if (stored) {
+                try { currentApps = JSON.parse(stored); } catch (_) {}
+            }
+
+            if (storedRemote) {
+                try {
+                    const parsedRemote = JSON.parse(storedRemote);
+                    if (Array.isArray(parsedRemote) && parsedRemote.length > 0) {
+                        setRemoteApps(parsedRemote);
+                    }
+                } catch (_) {}
+            }
+
+            // Si vraiment aucune app locale ni distante n'est disponible (ex: premier démarrage sans réseau)
+            if (currentApps.length === 0 && (!storedRemote || JSON.parse(storedRemote).length === 0)) {
+                setApps(SAMPLE_APPS);
+                saveApps(SAMPLE_APPS);
+            }
+        } finally {
+            setRefreshingRemote(false);
+        }
+    }, [apps]);
+
+    useEffect(() => {
+        const initializeApps = async () => {
+            const loadedApps = await loadApps();
+            await fetchRemoteApps(loadedApps);
+        };
+
+        initializeApps();
+    }, [loadApps]);
 
     const addApp = useCallback(async (app: Omit<MiniApp, 'id' | 'addedAt'>) => {
         const iconValue = app.icon?.trim() || '🌐';
@@ -243,6 +293,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
             remoteApps,
             loading,
             refreshingRemote,
+            isOffline,
             addApp,
             removeApp,
             updateApp,

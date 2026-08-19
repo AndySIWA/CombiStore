@@ -23,9 +23,10 @@ import Animated, {
 import { FontAwesome6 } from '@expo/vector-icons';
 
 const ALL_CAT_ID = 'all';
+const OFFLINE_CAT_ID = 'offline_filter';
 
 export default function StoreScreen() {
-    const { apps, remoteApps, refreshingRemote, fetchRemoteApps, importRemoteApp } = useApps();
+    const { apps, remoteApps, refreshingRemote, isOffline, fetchRemoteApps, importRemoteApp } = useApps();
     const { categories } = useCategories();
     const { theme, mode, toggleTheme } = useTheme();
     const [search, setSearch] = useState('');
@@ -43,13 +44,11 @@ export default function StoreScreen() {
         logoRotate.value = withSpring(0, { damping: 10, stiffness: 90 }, (finished) => {
             if (finished) {
                 // Loop animations start once the entrance is complete
-                // Subtle breathing scale (oscillate between 0.96 and 1.04)
                 logoScale.value = withRepeat(
                     withTiming(1.04, { duration: 2500, easing: Easing.inOut(Easing.ease) }),
                     -1,
                     true
                 );
-                // Subtle bobbing up and down (oscillate between -3 and 3 pixels)
                 logoTranslateY.value = withRepeat(
                     withTiming(3, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
                     -1,
@@ -60,20 +59,17 @@ export default function StoreScreen() {
     }, []);
 
     const handleLogoPress = () => {
-        // Interactive pop on scale
         logoScale.value = withSequence(
             withTiming(1.25, { duration: 150, easing: Easing.out(Easing.ease) }),
             withSpring(1, { damping: 8, stiffness: 100 })
         );
-        // Quick 360-degree spin
-        logoRotate.value = 0; // reset rotation
+        logoRotate.value = 0;
         logoRotate.value = withTiming(360, { duration: 550, easing: Easing.out(Easing.back()) }, (finished) => {
             if (finished) {
-                logoRotate.value = 0; // reset to 0
+                logoRotate.value = 0;
             }
         });
 
-        // Small delay to let the animation start and show the spin pop before transition
         setTimeout(() => {
             router.push('/info');
         }, 150);
@@ -121,7 +117,13 @@ export default function StoreScreen() {
     ];
 
     const filtered = combinedApps.filter(app => {
-        const matchCat = activeCategory === ALL_CAT_ID || app.categoryId === activeCategory;
+        let matchCat = true;
+        if (activeCategory === OFFLINE_CAT_ID) {
+            matchCat = app.sourceType === 'html';
+        } else if (activeCategory !== ALL_CAT_ID) {
+            matchCat = app.categoryId === activeCategory;
+        }
+
         const matchSearch = search.length === 0 ||
             app.name.toLowerCase().includes(search.toLowerCase()) ||
             app.description.toLowerCase().includes(search.toLowerCase());
@@ -156,7 +158,9 @@ export default function StoreScreen() {
                         </Animated.View>
                         <View>
                             <Text style={[styles.headerTitle, { color: theme.text }]}>Explorer</Text>
-                            <Text style={[styles.headerSlogan, { color: theme.textSecondary }]}>Nouveautés publiées</Text>
+                            <Text style={[styles.headerSlogan, { color: theme.textSecondary }]}>
+                                {isOffline ? '⚡ Mode Hors-Ligne Actif' : 'Nouveautés publiées'}
+                            </Text>
                         </View>
                     </TouchableOpacity>
 
@@ -188,7 +192,7 @@ export default function StoreScreen() {
                     <Text style={styles.searchIcon}>🔍</Text>
                     <TextInput
                         style={[styles.searchInput, { color: theme.text }]}
-                        placeholder="Rechercher dans le cloud..."
+                        placeholder="Rechercher une application..."
                         placeholderTextColor={theme.textMuted}
                         value={search}
                         onChangeText={setSearch}
@@ -201,6 +205,16 @@ export default function StoreScreen() {
                         </TouchableOpacity>
                     )}
                 </View>
+
+                {/* Offline banner notification if offline */}
+                {isOffline && (
+                    <View style={[styles.offlineBanner, { backgroundColor: theme.surface, borderColor: 'rgba(16, 185, 129, 0.3)' }]}>
+                        <Text style={styles.offlineBannerIcon}>⚡</Text>
+                        <Text style={[styles.offlineBannerText, { color: theme.textSecondary }]}>
+                            Mode hors-ligne : catalogue disponible depuis le stockage local
+                        </Text>
+                    </View>
+                )}
             </LinearGradient>
 
             {/* Category pills */}
@@ -210,6 +224,7 @@ export default function StoreScreen() {
                     showsHorizontalScrollIndicator={false}
                     data={[
                         { id: ALL_CAT_ID, name: 'Toutes', icon: '🌟', color: theme.accent },
+                        { id: OFFLINE_CAT_ID, name: 'Hors-ligne', icon: '⚡', color: '#10B981' },
                         ...categories.filter(c => c.id !== ALL_CAT_ID)
                     ]}
                     keyExtractor={c => c.id}
@@ -255,14 +270,14 @@ export default function StoreScreen() {
                 }
                 ListEmptyComponent={
                     <View style={styles.empty}>
-                        <Text style={styles.emptyIcon}>☁️</Text>
+                        <Text style={styles.emptyIcon}>⚡</Text>
                         <Text style={[styles.emptyTitle, { color: theme.text }]}>
-                            {search || activeCategory !== ALL_CAT_ID ? 'Aucun résultat' : 'Bientôt disponible'}
+                            {search || activeCategory !== ALL_CAT_ID ? 'Aucun résultat' : 'Catalogue en préparation'}
                         </Text>
                         <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
                             {search || activeCategory !== ALL_CAT_ID
-                                ? 'Essayez une autre recherche.'
-                                : 'Le catalogue sera bientôt mis à jour avec de nouvelles pépites.'}
+                                ? 'Essayez une autre recherche ou filtre.'
+                                : 'De nouvelles applications hors-ligne seront disponibles sous peu.'}
                         </Text>
                     </View>
                 }
@@ -380,6 +395,25 @@ const styles = StyleSheet.create({
         fontSize: 16,
         paddingLeft: 10,
     },
+    offlineBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 10,
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        borderRadius: 12,
+        borderWidth: 1,
+        gap: 8,
+    },
+    offlineBannerIcon: {
+        fontSize: 14,
+        color: '#10B981',
+    },
+    offlineBannerText: {
+        fontFamily: FONT.medium,
+        fontSize: 11,
+        flex: 1,
+    },
     pillsContainer: {
         marginBottom: 4,
     },
@@ -443,24 +477,5 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         lineHeight: 22,
         marginBottom: 32,
-    },
-    emptyBtn: {
-        borderRadius: 100,
-        overflow: 'hidden',
-        elevation: 8,
-        shadowColor: COLORS.accent,
-        shadowOpacity: 0.4,
-        shadowRadius: 15,
-        shadowOffset: { width: 0, height: 8 },
-    },
-    emptyBtnGrad: {
-        paddingHorizontal: 32,
-        paddingVertical: 16,
-        alignItems: 'center',
-    },
-    emptyBtnText: {
-        fontFamily: FONT.bold,
-        fontSize: 16,
-        color: COLORS.white,
     },
 });
