@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
     View, Text, StyleSheet, FlatList, TouchableOpacity,
-    TextInput, Alert, RefreshControl, Image,
+    TextInput, Alert, RefreshControl, Image, Modal, Pressable,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -9,6 +9,8 @@ import { COLORS, SPACING, FONT, GRADIENTS } from '../../src/constants/theme';
 import { useApps } from '../../src/context/AppsContext';
 import { useCategories } from '../../src/context/CategoriesContext';
 import { useTheme } from '../../src/context/ThemeContext';
+import { useAuth } from '../../src/context/AuthContext';
+import { useFavorites } from '../../src/context/FavoritesContext';
 import { AnimatedCard } from '../../src/components/AnimatedCard';
 import { MiniApp, RemoteApp } from '../../src/types';
 import Animated, {
@@ -23,15 +25,20 @@ import Animated, {
 import { FontAwesome6 } from '@expo/vector-icons';
 
 const ALL_CAT_ID = 'all';
+const FAVORITES_CAT_ID = 'favorites';
 const OFFLINE_CAT_ID = 'offline_filter';
 
 export default function StoreScreen() {
     const { apps, remoteApps, refreshingRemote, isOffline, fetchRemoteApps, importRemoteApp } = useApps();
     const { categories } = useCategories();
     const { theme, mode, toggleTheme } = useTheme();
+    const { user, signInWithGoogle, signOut, loading: authLoading } = useAuth();
+    const { isFavorite, favoritesCount, syncing, syncWithCloud } = useFavorites();
+
     const [search, setSearch] = useState('');
     const [activeCategory, setActiveCategory] = useState(ALL_CAT_ID);
     const [searchFocused, setSearchFocused] = useState(false);
+    const [profileModalVisible, setProfileModalVisible] = useState(false);
 
     // Animation values for the app logo
     const logoScale = useSharedValue(0.3);
@@ -118,7 +125,9 @@ export default function StoreScreen() {
 
     const filtered = combinedApps.filter(app => {
         let matchCat = true;
-        if (activeCategory === OFFLINE_CAT_ID) {
+        if (activeCategory === FAVORITES_CAT_ID) {
+            matchCat = isFavorite(app.id);
+        } else if (activeCategory === OFFLINE_CAT_ID) {
             matchCat = app.sourceType === 'html';
         } else if (activeCategory !== ALL_CAT_ID) {
             matchCat = app.categoryId === activeCategory;
@@ -165,14 +174,52 @@ export default function StoreScreen() {
                     </TouchableOpacity>
 
                     <View style={styles.headerRight}>
+                        {/* Auth / Profile Button */}
+                        {user ? (
+                            <TouchableOpacity
+                                onPress={() => setProfileModalVisible(true)}
+                                style={[
+                                    styles.userAvatarBtn,
+                                    { borderColor: theme.accent + '60', backgroundColor: theme.surface }
+                                ]}
+                                activeOpacity={0.7}
+                            >
+                                {user.photoURL ? (
+                                    <Image source={{ uri: user.photoURL }} style={styles.userAvatarImg} />
+                                ) : (
+                                    <Text style={[styles.userInitials, { color: theme.accent }]}>
+                                        {user.displayName ? user.displayName[0].toUpperCase() : '👤'}
+                                    </Text>
+                                )}
+                                {syncing && (
+                                    <View style={styles.syncBadge}>
+                                        <Text style={styles.syncBadgeText}>🔄</Text>
+                                    </View>
+                                )}
+                            </TouchableOpacity>
+                        ) : (
+                            <TouchableOpacity
+                                onPress={signInWithGoogle}
+                                disabled={authLoading}
+                                style={[
+                                    styles.loginBtn,
+                                    { backgroundColor: theme.surface, borderColor: theme.border }
+                                ]}
+                                activeOpacity={0.7}
+                            >
+                                <FontAwesome6 name="google" size={14} color="#EA4335" style={{ marginRight: 6 }} />
+                                <Text style={[styles.loginBtnText, { color: theme.text }]}>Connexion</Text>
+                            </TouchableOpacity>
+                        )}
+
                         <TouchableOpacity
                             onPress={fetchRemoteApps}
                             disabled={refreshingRemote}
-                            style={[styles.headerIconBtn, { backgroundColor: theme.surface, borderColor: theme.border, marginRight: 8 }]}
+                            style={[styles.headerIconBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
                         >
                             <FontAwesome6
                                 name="arrows-rotate"
-                                size={18}
+                                size={17}
                                 color={theme.text}
                                 style={refreshingRemote ? { opacity: 0.4 } : undefined}
                             />
@@ -217,13 +264,19 @@ export default function StoreScreen() {
                 )}
             </LinearGradient>
 
-            {/* Category pills */}
+            {/* Category pills with Favorites integration */}
             <View style={styles.pillsContainer}>
                 <FlatList
                     horizontal={true}
                     showsHorizontalScrollIndicator={false}
                     data={[
                         { id: ALL_CAT_ID, name: 'Toutes', icon: '🌟', color: theme.accent },
+                        {
+                            id: FAVORITES_CAT_ID,
+                            name: `Favoris${favoritesCount > 0 ? ` (${favoritesCount})` : ''}`,
+                            icon: '❤️',
+                            color: '#EF4444'
+                        },
                         { id: OFFLINE_CAT_ID, name: 'Hors-ligne', icon: '⚡', color: '#10B981' },
                         ...categories.filter(c => c.id !== ALL_CAT_ID)
                     ]}
@@ -249,7 +302,7 @@ export default function StoreScreen() {
                 />
             </View>
 
-            {/* App grid (Standard Grid) */}
+            {/* App grid */}
             <FlatList
                 data={filtered}
                 keyExtractor={a => a.id}
@@ -263,23 +316,43 @@ export default function StoreScreen() {
                 ListHeaderComponent={
                     <View style={styles.statsBar}>
                         <Text style={[styles.countText, { color: theme.textMuted }]}>
-                            {filtered.length} app{filtered.length !== 1 ? 's' : ''} disponible{filtered.length !== 1 ? 's' : ''}
+                            {filtered.length} app{filtered.length !== 1 ? 's' : ''} {activeCategory === FAVORITES_CAT_ID ? 'favorite' : 'disponible'}{filtered.length !== 1 ? 's' : ''}
                         </Text>
                         <View style={[styles.statsLine, { backgroundColor: theme.border }]} />
                     </View>
                 }
                 ListEmptyComponent={
-                    <View style={styles.empty}>
-                        <Text style={styles.emptyIcon}>⚡</Text>
-                        <Text style={[styles.emptyTitle, { color: theme.text }]}>
-                            {search || activeCategory !== ALL_CAT_ID ? 'Aucun résultat' : 'Catalogue en préparation'}
-                        </Text>
-                        <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
-                            {search || activeCategory !== ALL_CAT_ID
-                                ? 'Essayez une autre recherche ou filtre.'
-                                : 'De nouvelles applications hors-ligne seront disponibles sous peu.'}
-                        </Text>
-                    </View>
+                    activeCategory === FAVORITES_CAT_ID ? (
+                        <View style={styles.emptyFavorites}>
+                            <View style={[styles.emptyHeartBubble, { backgroundColor: 'rgba(239, 68, 68, 0.12)', borderColor: 'rgba(239, 68, 68, 0.3)' }]}>
+                                <FontAwesome6 name="heart" size={36} color="#EF4444" solid />
+                            </View>
+                            <Text style={[styles.emptyTitle, { color: theme.text }]}>
+                                Aucun favori pour le moment
+                            </Text>
+                            <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
+                                Cliquez sur le cœur ❤️ d'une application pour l'ajouter à vos favoris et la retrouver ici instantanément.
+                            </Text>
+                            <TouchableOpacity
+                                onPress={() => setActiveCategory(ALL_CAT_ID)}
+                                style={[styles.emptyActionBtn, { backgroundColor: theme.accent }]}
+                            >
+                                <Text style={styles.emptyActionBtnText}>Explorer les applications</Text>
+                            </TouchableOpacity>
+                        </View>
+                    ) : (
+                        <View style={styles.empty}>
+                            <Text style={styles.emptyIcon}>⚡</Text>
+                            <Text style={[styles.emptyTitle, { color: theme.text }]}>
+                                {search || activeCategory !== ALL_CAT_ID ? 'Aucun résultat' : 'Catalogue en préparation'}
+                            </Text>
+                            <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
+                                {search || activeCategory !== ALL_CAT_ID
+                                    ? 'Essayez une autre recherche ou filtre.'
+                                    : 'De nouvelles applications hors-ligne seront disponibles sous peu.'}
+                            </Text>
+                        </View>
+                    )
                 }
                 renderItem={({ item, index }) => {
                     const installed = isAppInstalled(item);
@@ -297,6 +370,87 @@ export default function StoreScreen() {
                     );
                 }}
             />
+
+            {/* User Profile Modal */}
+            <Modal
+                visible={profileModalVisible}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setProfileModalVisible(false)}
+            >
+                <Pressable
+                    style={styles.modalOverlay}
+                    onPress={() => setProfileModalVisible(false)}
+                >
+                    <Pressable
+                        style={[styles.profileCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                        onPress={(e) => e.stopPropagation()}
+                    >
+                        {/* Header with Avatar */}
+                        <View style={styles.profileHeader}>
+                            <View style={[styles.profileAvatarWrapper, { borderColor: theme.accent }]}>
+                                {user?.photoURL ? (
+                                    <Image source={{ uri: user.photoURL }} style={styles.profileAvatarLarge} />
+                                ) : (
+                                    <Text style={[styles.profileAvatarInitial, { color: theme.accent }]}>
+                                        {user?.displayName ? user.displayName[0].toUpperCase() : '👤'}
+                                    </Text>
+                                )}
+                            </View>
+                            <Text style={[styles.profileName, { color: theme.text }]}>
+                                {user?.displayName || 'Utilisateur'}
+                            </Text>
+                            {user?.email && (
+                                <Text style={[styles.profileEmail, { color: theme.textSecondary }]}>
+                                    {user.email}
+                                </Text>
+                            )}
+
+                            <View style={styles.cloudBadge}>
+                                <Text style={styles.cloudBadgeText}>🟢 Synchronisation Cloud Active</Text>
+                            </View>
+                        </View>
+
+                        {/* User Stats Card */}
+                        <View style={[styles.statsBox, { backgroundColor: theme.bg, borderColor: theme.border }]}>
+                            <View style={styles.statItem}>
+                                <Text style={[styles.statValue, { color: '#EF4444' }]}>{favoritesCount}</Text>
+                                <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Favoris ❤️</Text>
+                            </View>
+                            <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
+                            <View style={styles.statItem}>
+                                <Text style={[styles.statValue, { color: theme.accent }]}>{apps.length}</Text>
+                                <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Apps installées</Text>
+                            </View>
+                        </View>
+
+                        {/* Modal Actions */}
+                        <View style={styles.modalActions}>
+                            <TouchableOpacity
+                                onPress={async () => {
+                                    await syncWithCloud();
+                                    Alert.alert('Synchronisation', 'Vos favoris et préférences sont à jour dans le cloud.');
+                                }}
+                                style={[styles.modalBtn, { backgroundColor: theme.accent + '20', borderColor: theme.accent + '50' }]}
+                            >
+                                <FontAwesome6 name="arrows-rotate" size={14} color={theme.accent} style={{ marginRight: 8 }} />
+                                <Text style={[styles.modalBtnText, { color: theme.accent }]}>Synchroniser maintenant</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                onPress={async () => {
+                                    setProfileModalVisible(false);
+                                    await signOut();
+                                }}
+                                style={[styles.modalBtn, styles.logoutBtn]}
+                            >
+                                <FontAwesome6 name="arrow-right-from-bracket" size={14} color="#EF4444" style={{ marginRight: 8 }} />
+                                <Text style={[styles.modalBtnText, { color: '#EF4444' }]}>Se déconnecter</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </Pressable>
+                </Pressable>
+            </Modal>
         </View>
     );
 }
@@ -337,11 +491,12 @@ const styles = StyleSheet.create({
     headerLeft: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 16,
+        gap: 14,
+        flex: 1,
     },
     logoContainer: {
-        width: 60,
-        height: 60,
+        width: 54,
+        height: 54,
     },
     headerLogo: {
         width: '100%',
@@ -349,29 +504,73 @@ const styles = StyleSheet.create({
     },
     headerTitle: {
         fontFamily: FONT.bold,
-        fontSize: 24,
+        fontSize: 23,
         letterSpacing: -0.8,
     },
     headerSlogan: {
         fontFamily: FONT.medium,
-        fontSize: 13,
+        fontSize: 12.5,
         marginTop: 1,
         opacity: 0.8,
     },
     headerRight: {
         flexDirection: 'row',
-        gap: 10,
+        alignItems: 'center',
+        gap: 8,
+    },
+    loginBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 11,
+        paddingVertical: 8,
+        borderRadius: 14,
+        borderWidth: 1,
+        height: 40,
+    },
+    loginBtnText: {
+        fontFamily: FONT.semiBold,
+        fontSize: 12,
+    },
+    userAvatarBtn: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        borderWidth: 2,
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+        position: 'relative',
+    },
+    userAvatarImg: {
+        width: '100%',
+        height: '100%',
+        borderRadius: 20,
+    },
+    userInitials: {
+        fontFamily: FONT.bold,
+        fontSize: 16,
+    },
+    syncBadge: {
+        position: 'absolute',
+        bottom: -2,
+        right: -2,
+        backgroundColor: '#FFFFFF',
+        borderRadius: 6,
+        padding: 1,
+    },
+    syncBadgeText: {
+        fontSize: 8,
     },
     headerIconBtn: {
-        width: 44,
-        height: 44,
+        width: 40,
+        height: 40,
         borderRadius: 14,
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
     },
     headerIconText: {
-        fontSize: 20,
+        fontSize: 18,
     },
     searchBar: {
         flexDirection: 'row',
@@ -467,15 +666,146 @@ const styles = StyleSheet.create({
     },
     emptyTitle: {
         fontFamily: FONT.bold,
-        fontSize: 22,
-        marginBottom: 12,
+        fontSize: 20,
+        marginBottom: 10,
         textAlign: 'center',
     },
     emptyText: {
         fontFamily: FONT.regular,
-        fontSize: 15,
+        fontSize: 14,
         textAlign: 'center',
-        lineHeight: 22,
-        marginBottom: 32,
+        lineHeight: 21,
+        marginBottom: 24,
+    },
+    emptyFavorites: {
+        alignItems: 'center',
+        paddingTop: 60,
+        paddingHorizontal: 32,
+    },
+    emptyHeartBubble: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        borderWidth: 1.5,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 20,
+    },
+    emptyActionBtn: {
+        paddingHorizontal: 20,
+        paddingVertical: 12,
+        borderRadius: 16,
+    },
+    emptyActionBtnText: {
+        fontFamily: FONT.bold,
+        fontSize: 14,
+        color: COLORS.white,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.55)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 24,
+    },
+    profileCard: {
+        width: '100%',
+        maxWidth: 360,
+        borderRadius: 28,
+        borderWidth: 1,
+        padding: 24,
+        alignItems: 'center',
+    },
+    profileHeader: {
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    profileAvatarWrapper: {
+        width: 72,
+        height: 72,
+        borderRadius: 36,
+        borderWidth: 3,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 12,
+        overflow: 'hidden',
+    },
+    profileAvatarLarge: {
+        width: '100%',
+        height: '100%',
+    },
+    profileAvatarInitial: {
+        fontFamily: FONT.bold,
+        fontSize: 32,
+    },
+    profileName: {
+        fontFamily: FONT.bold,
+        fontSize: 19,
+        marginBottom: 4,
+    },
+    profileEmail: {
+        fontFamily: FONT.medium,
+        fontSize: 13,
+        marginBottom: 10,
+    },
+    cloudBadge: {
+        backgroundColor: 'rgba(16, 185, 129, 0.12)',
+        paddingHorizontal: 12,
+        paddingVertical: 4,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(16, 185, 129, 0.25)',
+    },
+    cloudBadgeText: {
+        fontFamily: FONT.semiBold,
+        fontSize: 11,
+        color: '#10B981',
+    },
+    statsBox: {
+        flexDirection: 'row',
+        width: '100%',
+        borderRadius: 18,
+        borderWidth: 1,
+        paddingVertical: 14,
+        marginBottom: 20,
+    },
+    statItem: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    statValue: {
+        fontFamily: FONT.bold,
+        fontSize: 20,
+        marginBottom: 2,
+    },
+    statLabel: {
+        fontFamily: FONT.medium,
+        fontSize: 12,
+    },
+    statDivider: {
+        width: 1,
+        height: '80%',
+        alignSelf: 'center',
+    },
+    modalActions: {
+        width: '100%',
+        gap: 10,
+    },
+    modalBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+        paddingVertical: 13,
+        borderRadius: 16,
+        borderWidth: 1,
+    },
+    modalBtnText: {
+        fontFamily: FONT.bold,
+        fontSize: 14,
+    },
+    logoutBtn: {
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        borderColor: 'rgba(239, 68, 68, 0.25)',
     },
 });

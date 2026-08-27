@@ -3,8 +3,10 @@ import {
     View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Platform, Linking,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
+import { FontAwesome6 } from '@expo/vector-icons';
 import { COLORS, FONT, RADII, SPACING } from '../../src/constants/theme';
 import { useApps } from '../../src/context/AppsContext';
+import { useFavorites } from '../../src/context/FavoritesContext';
 
 // Platform-conditional import
 let WebView: any = null;
@@ -15,10 +17,13 @@ if (Platform.OS !== 'web') {
 export default function ViewerScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const { apps, remoteApps } = useApps();
+    const { isFavorite, toggleFavorite } = useFavorites();
     const app = apps.find(a => a.id === id) || remoteApps.find(a => a.id === id);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
     const webViewRef = useRef<any>(null);
+
+    const favorite = app ? isFavorite(app.id) : false;
 
     const openExternal = async () => {
         if (!app || app.sourceType !== 'url') return;
@@ -78,27 +83,46 @@ export default function ViewerScreen() {
                 </View>
             </View>
 
-            {Platform.OS !== 'web' && (
+            <View style={styles.topRightActions}>
+                {/* Favorite toggle */}
                 <TouchableOpacity
-                    style={styles.reloadBtn}
-                    onPress={() => {
-                        setError(false);
-                        setLoading(true);
-                        webViewRef.current?.reload();
-                    }}
+                    style={[
+                        styles.iconBtn,
+                        favorite && { backgroundColor: 'rgba(239, 68, 68, 0.2)', borderColor: 'rgba(239, 68, 68, 0.4)' }
+                    ]}
+                    onPress={() => toggleFavorite(app.id)}
+                    activeOpacity={0.7}
                 >
-                    <Text style={styles.reloadIcon}>↻</Text>
+                    <FontAwesome6
+                        name="heart"
+                        size={15}
+                        color={favorite ? '#EF4444' : COLORS.white}
+                        solid={favorite}
+                    />
                 </TouchableOpacity>
-            )}
 
-            {app.sourceType === 'url' && (
-                <TouchableOpacity
-                    style={[styles.reloadBtn, styles.externalBtn]}
-                    onPress={openExternal}
-                >
-                    <Text style={styles.reloadIcon}>🌐</Text>
-                </TouchableOpacity>
-            )}
+                {Platform.OS !== 'web' && (
+                    <TouchableOpacity
+                        style={styles.iconBtn}
+                        onPress={() => {
+                            setError(false);
+                            setLoading(true);
+                            webViewRef.current?.reload();
+                        }}
+                    >
+                        <Text style={styles.reloadIcon}>↻</Text>
+                    </TouchableOpacity>
+                )}
+
+                {app.sourceType === 'url' && (
+                    <TouchableOpacity
+                        style={styles.iconBtn}
+                        onPress={openExternal}
+                    >
+                        <Text style={styles.reloadIcon}>🌐</Text>
+                    </TouchableOpacity>
+                )}
+            </View>
         </View>
     );
 
@@ -238,7 +262,7 @@ const styles = StyleSheet.create({
         paddingTop: Platform.OS === 'ios' ? 54 : 38,
         paddingHorizontal: 16,
         paddingBottom: 12,
-        backgroundColor: 'rgba(15, 23, 42, 0.75)',
+        backgroundColor: 'rgba(15, 23, 42, 0.85)',
         borderBottomWidth: 1,
         borderBottomColor: 'rgba(255, 255, 255, 0.08)',
         zIndex: 10,
@@ -261,6 +285,7 @@ const styles = StyleSheet.create({
     topInfo: {
         flex: 1,
         alignItems: 'center',
+        paddingHorizontal: 8,
     },
     appTitle: {
         fontFamily: FONT.bold,
@@ -276,7 +301,12 @@ const styles = StyleSheet.create({
         fontSize: 11,
         opacity: 0.9,
     },
-    reloadBtn: {
+    topRightActions: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    iconBtn: {
         width: 36,
         height: 36,
         borderRadius: 18,
@@ -288,7 +318,7 @@ const styles = StyleSheet.create({
     },
     reloadIcon: {
         color: COLORS.white,
-        fontSize: 18,
+        fontSize: 17,
     },
     webview: {
         flex: 1,
@@ -370,8 +400,5 @@ const styles = StyleSheet.create({
         fontFamily: FONT.medium,
         fontSize: 14,
         color: COLORS.textMuted,
-    },
-    externalBtn: {
-        marginLeft: 8,
     },
 });

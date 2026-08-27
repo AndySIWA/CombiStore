@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { FontAwesome6 } from '@expo/vector-icons';
 import { FONT, COLORS } from '../constants/theme';
 import { MiniApp, Category } from '../types';
 import { useTheme } from '../context/ThemeContext';
+import { useFavorites } from '../context/FavoritesContext';
 
 interface AppCardProps {
     app: MiniApp;
@@ -16,7 +18,10 @@ interface AppCardProps {
 
 export const AppCard = ({ app, category, onPress, onLongPress, isInstalled, actionLabel, onAction }: AppCardProps) => {
     const { theme, mode } = useTheme();
+    const { isFavorite, toggleFavorite } = useFavorites();
     const isFeatured = false;
+    const favorite = isFavorite(app.id);
+
     const iconValue = typeof app.icon === 'string' ? app.icon : '';
     const displayIcon = iconValue || '❔';
     const isImageIcon = iconValue.startsWith('http');
@@ -37,13 +42,6 @@ export const AppCard = ({ app, category, onPress, onLongPress, isInstalled, acti
                     <View style={styles.glassHighlight} />
 
                     <View style={isFeatured ? styles.contentRowFeatured : styles.contentDefault}>
-                        {/* Status Icon */}
-                        {isInstalled && (
-                            <View style={[styles.installedIcon, { backgroundColor: badgeColor }]}>
-                                <Text style={styles.installedCheckmark}>✓</Text>
-                            </View>
-                        )}
-
                         <View style={styles.headerRow}>
                             {/* Icon Bubble */}
                             <View style={[
@@ -62,25 +60,59 @@ export const AppCard = ({ app, category, onPress, onLongPress, isInstalled, acti
                                 )}
                             </View>
 
-                            {/* Offline Tag */}
-                            <View style={[
-                                styles.modeTag,
-                                isOfflineReady
-                                    ? { backgroundColor: 'rgba(16, 185, 129, 0.12)', borderColor: 'rgba(16, 185, 129, 0.25)' }
-                                    : { backgroundColor: 'rgba(59, 130, 246, 0.12)', borderColor: 'rgba(59, 130, 246, 0.25)' }
-                            ]}>
-                                <Text style={[
-                                    styles.modeTagText,
-                                    { color: isOfflineReady ? '#10b981' : '#60a5fa' }
+                            {/* Top Right Badges & Favorite */}
+                            <View style={styles.topRightActions}>
+                                <TouchableOpacity
+                                    onPress={() => toggleFavorite(app.id)}
+                                    style={[
+                                        styles.favButton,
+                                        {
+                                            backgroundColor: favorite
+                                                ? 'rgba(239, 68, 68, 0.15)'
+                                                : theme.surface,
+                                            borderColor: favorite
+                                                ? 'rgba(239, 68, 68, 0.35)'
+                                                : theme.border,
+                                        },
+                                    ]}
+                                    activeOpacity={0.7}
+                                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                                >
+                                    <FontAwesome6
+                                        name="heart"
+                                        size={13}
+                                        color={favorite ? '#EF4444' : theme.textMuted}
+                                        solid={favorite}
+                                    />
+                                </TouchableOpacity>
+
+                                {/* Offline Tag */}
+                                <View style={[
+                                    styles.modeTag,
+                                    isOfflineReady
+                                        ? { backgroundColor: 'rgba(16, 185, 129, 0.12)', borderColor: 'rgba(16, 185, 129, 0.25)' }
+                                        : { backgroundColor: 'rgba(59, 130, 246, 0.12)', borderColor: 'rgba(59, 130, 246, 0.25)' }
                                 ]}>
-                                    {isOfflineReady ? '⚡ Offline' : '🌐 Web'}
-                                </Text>
+                                    <Text style={[
+                                        styles.modeTagText,
+                                        { color: isOfflineReady ? '#10b981' : '#60a5fa' }
+                                    ]}>
+                                        {isOfflineReady ? '⚡ Offline' : '🌐 Web'}
+                                    </Text>
+                                </View>
                             </View>
                         </View>
 
                         {/* Text Content */}
                         <View style={styles.content}>
-                            <Text style={[styles.appName, { color: theme.text }]} numberOfLines={1}>{app.name}</Text>
+                            <View style={styles.titleRow}>
+                                <Text style={[styles.appName, { color: theme.text }]} numberOfLines={1}>{app.name}</Text>
+                                {isInstalled && (
+                                    <View style={[styles.installedBadge, { backgroundColor: badgeColor }]}>
+                                        <Text style={styles.installedCheckmark}>✓</Text>
+                                    </View>
+                                )}
+                            </View>
                             <Text style={[styles.appDesc, { color: theme.textSecondary }]} numberOfLines={2}>
                                 {app.description}
                             </Text>
@@ -113,7 +145,7 @@ const styles = StyleSheet.create({
     },
     card: {
         borderRadius: 22,
-        padding: 16,
+        padding: 14,
         borderWidth: 1,
         minHeight: 146,
         position: 'relative',
@@ -131,23 +163,6 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 100,
         borderBottomRightRadius: 100,
     },
-    installedIcon: {
-        position: 'absolute',
-        top: 8,
-        right: 8,
-        width: 22,
-        height: 22,
-        borderRadius: 11,
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 10,
-    },
-    installedCheckmark: {
-        fontFamily: FONT.bold,
-        fontSize: 12,
-        color: COLORS.white,
-        lineHeight: 14,
-    },
     contentDefault: {
         flex: 1,
     },
@@ -163,24 +178,36 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         marginBottom: 10,
     },
+    topRightActions: {
+        alignItems: 'flex-end',
+        gap: 6,
+    },
+    favButton: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        borderWidth: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
     iconBubble: {
-        width: 52,
-        height: 52,
-        borderRadius: 18,
+        width: 48,
+        height: 48,
+        borderRadius: 16,
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1.5,
     },
     iconBubbleFeatured: {
         marginBottom: 0,
-        width: 64,
-        height: 64,
+        width: 60,
+        height: 60,
     },
     iconText: {
-        fontSize: 28,
+        fontSize: 26,
     },
     iconTextFeatured: {
-        fontSize: 32,
+        fontSize: 30,
     },
     iconImage: {
         width: '60%',
@@ -192,28 +219,48 @@ const styles = StyleSheet.create({
         height: '70%',
     },
     modeTag: {
-        paddingHorizontal: 7,
-        paddingVertical: 3,
-        borderRadius: 8,
+        paddingHorizontal: 6,
+        paddingVertical: 2.5,
+        borderRadius: 7,
         borderWidth: 1,
     },
     modeTagText: {
         fontFamily: FONT.bold,
-        fontSize: 10,
+        fontSize: 9.5,
         letterSpacing: 0.2,
     },
     content: {
         flex: 1,
     },
+    titleRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 4,
+        marginBottom: 4,
+    },
     appName: {
         fontFamily: FONT.bold,
-        fontSize: 15,
-        marginBottom: 4,
+        fontSize: 14.5,
+        flex: 1,
+    },
+    installedBadge: {
+        width: 16,
+        height: 16,
+        borderRadius: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    installedCheckmark: {
+        fontFamily: FONT.bold,
+        fontSize: 9,
+        color: COLORS.white,
+        lineHeight: 11,
     },
     appDesc: {
         fontFamily: FONT.medium,
-        fontSize: 12,
-        lineHeight: 16,
+        fontSize: 11.5,
+        lineHeight: 15,
         opacity: 0.85,
     },
     actionBtn: {

@@ -11,9 +11,11 @@ import {
     Inter_700Bold,
 } from '@expo-google-fonts/inter';
 import { COLORS } from '../src/constants/theme';
+import { ThemeProvider, useTheme } from '../src/context/ThemeContext';
+import { AuthProvider } from '../src/context/AuthContext';
+import { FavoritesProvider } from '../src/context/FavoritesContext';
 import { AppsProvider } from '../src/context/AppsContext';
 import { CategoriesProvider } from '../src/context/CategoriesContext';
-import { ThemeProvider, useTheme } from '../src/context/ThemeContext';
 
 import { checkForAppUpdates } from '../src/services/updatesService';
 
@@ -72,11 +74,15 @@ export default function RootLayout() {
 
     return (
         <ThemeProvider>
-            <AppsProvider>
-                <CategoriesProvider>
-                    <StackLayout />
-                </CategoriesProvider>
-            </AppsProvider>
+            <AuthProvider>
+                <FavoritesProvider>
+                    <AppsProvider>
+                        <CategoriesProvider>
+                            <StackLayout />
+                        </CategoriesProvider>
+                    </AppsProvider>
+                </FavoritesProvider>
+            </AuthProvider>
         </ThemeProvider>
     );
 }

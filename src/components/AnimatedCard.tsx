@@ -5,14 +5,17 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   withTiming,
+  withSequence,
   Easing,
   interpolate,
   Extrapolate,
 } from 'react-native-reanimated';
+import { FontAwesome6 } from '@expo/vector-icons';
 import { FONT, COLORS } from '../constants/theme';
 import { ANIMATIONS } from '../constants/animations';
 import { MiniApp, Category } from '../types';
 import { useTheme } from '../context/ThemeContext';
+import { useFavorites } from '../context/FavoritesContext';
 
 interface AnimatedCardProps {
   app: MiniApp;
@@ -36,13 +39,17 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
   delay = 0,
 }) => {
   const { theme, mode } = useTheme();
+  const { isFavorite, toggleFavorite } = useFavorites();
   const [isAnimationStarted, setIsAnimationStarted] = useState(false);
+
+  const favorite = isFavorite(app.id);
 
   // Animation values
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(30);
   const scale = useSharedValue(0.95);
   const pressScale = useSharedValue(1);
+  const heartScale = useSharedValue(1);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -66,6 +73,14 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
 
   const onPressOut = () => {
     pressScale.value = withSpring(1, ANIMATIONS.timingConfigs.spring);
+  };
+
+  const handleFavoritePress = () => {
+    heartScale.value = withSequence(
+      withTiming(1.35, { duration: 120, easing: Easing.out(Easing.ease) }),
+      withSpring(1, { damping: 8, stiffness: 120 })
+    );
+    toggleFavorite(app.id);
   };
 
   const iconValue = typeof app.icon === 'string' ? app.icon : '';
@@ -95,6 +110,10 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
     };
   });
 
+  const heartAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: heartScale.value }],
+  }));
+
   return (
     <Animated.View style={[styles.wrapper, containerAnimatedStyle]}>
       <TouchableOpacity
@@ -121,14 +140,7 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
             <View style={styles.glassHighlight} />
 
             <View style={styles.contentDefault}>
-              {/* Installed badge */}
-              {isInstalled && (
-                <View style={[styles.installedIcon, { backgroundColor: badgeColor }]}>
-                  <Text style={styles.installedCheckmark}>✓</Text>
-                </View>
-              )}
-
-              {/* Header row with Icon and Offline Tag */}
+              {/* Header row with Icon and Badges */}
               <View style={styles.headerRow}>
                 {/* Icon bubble with animation */}
                 <Animated.View
@@ -152,27 +164,63 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
                   )}
                 </Animated.View>
 
-                {/* Offline/Online Badge Tag */}
-                <View style={[
-                  styles.modeTag,
-                  isOfflineReady
-                    ? { backgroundColor: 'rgba(16, 185, 129, 0.12)', borderColor: 'rgba(16, 185, 129, 0.25)' }
-                    : { backgroundColor: 'rgba(59, 130, 246, 0.12)', borderColor: 'rgba(59, 130, 246, 0.25)' }
-                ]}>
-                  <Text style={[
-                    styles.modeTagText,
-                    { color: isOfflineReady ? '#10b981' : '#60a5fa' }
+                {/* Badges and Favorite Button */}
+                <View style={styles.topRightActions}>
+                  <TouchableOpacity
+                    onPress={handleFavoritePress}
+                    style={[
+                      styles.favButton,
+                      {
+                        backgroundColor: favorite
+                          ? 'rgba(239, 68, 68, 0.15)'
+                          : theme.surface,
+                        borderColor: favorite
+                          ? 'rgba(239, 68, 68, 0.35)'
+                          : theme.border,
+                      },
+                    ]}
+                    activeOpacity={0.7}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Animated.View style={heartAnimatedStyle}>
+                      <FontAwesome6
+                        name="heart"
+                        size={13}
+                        color={favorite ? '#EF4444' : theme.textMuted}
+                        solid={favorite}
+                      />
+                    </Animated.View>
+                  </TouchableOpacity>
+
+                  {/* Offline/Online Badge Tag */}
+                  <View style={[
+                    styles.modeTag,
+                    isOfflineReady
+                      ? { backgroundColor: 'rgba(16, 185, 129, 0.12)', borderColor: 'rgba(16, 185, 129, 0.25)' }
+                      : { backgroundColor: 'rgba(59, 130, 246, 0.12)', borderColor: 'rgba(59, 130, 246, 0.25)' }
                   ]}>
-                    {isOfflineReady ? '⚡ Offline' : '🌐 Web'}
-                  </Text>
+                    <Text style={[
+                      styles.modeTagText,
+                      { color: isOfflineReady ? '#10b981' : '#60a5fa' }
+                    ]}>
+                      {isOfflineReady ? '⚡ Offline' : '🌐 Web'}
+                    </Text>
+                  </View>
                 </View>
               </View>
 
               {/* Text content */}
               <View style={styles.content}>
-                <Text style={[styles.appName, { color: theme.text }]} numberOfLines={1}>
-                  {app.name}
-                </Text>
+                <View style={styles.titleRow}>
+                  <Text style={[styles.appName, { color: theme.text }]} numberOfLines={1}>
+                    {app.name}
+                  </Text>
+                  {isInstalled && (
+                    <View style={[styles.installedBadge, { backgroundColor: badgeColor }]}>
+                      <Text style={styles.installedCheckmark}>✓</Text>
+                    </View>
+                  )}
+                </View>
                 <Text style={[styles.appDesc, { color: theme.textSecondary }]} numberOfLines={2}>
                   {app.description}
                 </Text>
@@ -213,7 +261,7 @@ const styles = StyleSheet.create({
   },
   card: {
     borderRadius: 22,
-    padding: 16,
+    padding: 14,
     borderWidth: 1,
     minHeight: 146,
     position: 'relative',
@@ -238,23 +286,6 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 100,
     borderBottomRightRadius: 100,
   },
-  installedIcon: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 10,
-  },
-  installedCheckmark: {
-    fontFamily: FONT.bold,
-    fontSize: 12,
-    color: COLORS.white,
-    lineHeight: 14,
-  },
   contentDefault: {
     flex: 1,
   },
@@ -264,16 +295,28 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 10,
   },
+  topRightActions: {
+    alignItems: 'flex-end',
+    gap: 6,
+  },
+  favButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   iconBubble: {
-    width: 52,
-    height: 52,
-    borderRadius: 18,
+    width: 48,
+    height: 48,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
   },
   iconText: {
-    fontSize: 28,
+    fontSize: 26,
   },
   iconImage: {
     width: '60%',
@@ -281,28 +324,48 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   modeTag: {
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: 8,
+    paddingHorizontal: 6,
+    paddingVertical: 2.5,
+    borderRadius: 7,
     borderWidth: 1,
   },
   modeTagText: {
     fontFamily: FONT.bold,
-    fontSize: 10,
+    fontSize: 9.5,
     letterSpacing: 0.2,
   },
   content: {
     flex: 1,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 4,
+    marginBottom: 4,
+  },
   appName: {
     fontFamily: FONT.bold,
-    fontSize: 15,
-    marginBottom: 4,
+    fontSize: 14.5,
+    flex: 1,
+  },
+  installedBadge: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  installedCheckmark: {
+    fontFamily: FONT.bold,
+    fontSize: 9,
+    color: COLORS.white,
+    lineHeight: 11,
   },
   appDesc: {
     fontFamily: FONT.medium,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: 11.5,
+    lineHeight: 15,
     opacity: 0.85,
   },
   actionBtn: {
