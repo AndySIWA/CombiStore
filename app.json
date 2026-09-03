@@ -32,7 +32,13 @@
       "expo-router",
       "expo-font",
       "expo-dev-client",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "react-native-nitro-google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.130481851392-o56691hpmmlhb52tckmm32dnc9ftmtgn"
+        }
+      ]
     ],
     "extra": {
       "router": {},

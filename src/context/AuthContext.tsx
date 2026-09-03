@@ -1,7 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { Platform } from 'react-native';
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
     onAuthStateChanged,
@@ -12,8 +10,7 @@ import {
     User as FirebaseUser,
 } from 'firebase/auth';
 import { auth, isFirebaseConfigured } from '../services/firebase';
-
-WebBrowser.maybeCompleteAuthSession();
+import { GoogleOneTapSignIn, isSuccessResponse } from 'react-native-nitro-google-signin';
 
 export interface AppUser {
     uid: string;
@@ -38,13 +35,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<AppUser | null>(null);
     const [loading, setLoading] = useState(true);
 
-    const [request, response, promptAsync] = Google.useAuthRequest({
-        webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || '1234567890-web.apps.googleusercontent.com',
-        androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-        iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-    });
+    // Initialisation native de Google Sign-In (Android Credential Manager / iOS SDK)
+    useEffect(() => {
+        if (Platform.OS !== 'web') {
+            const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+            if (webClientId) {
+                try {
+                    GoogleOneTapSignIn.configure({
+                        webClientId,
+                        offlineAccess: false,
+                    });
+                } catch (err) {
+                    console.warn('[AuthContext] Nitro GoogleOneTapSignIn.configure error:', err);
+                }
+            }
+        }
+    }, []);
 
-    // Load initial user state (Firebase listener or AsyncStorage fallback)
+    // Écoute de l'état d'authentification Firebase (ou fallback AsyncStorage)
     useEffect(() => {
         let unsubscribe: (() => void) | undefined;
 
@@ -69,7 +77,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         setLoading(false);
                     });
                 } else {
-                    // Fallback to local stored session
                     const localUser = await AsyncStorage.getItem(USER_STORAGE_KEY);
                     if (localUser) {
                         setUser(JSON.parse(localUser));
@@ -89,79 +96,61 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
     }, []);
 
-    // Handle Google OAuth response on mobile
-    useEffect(() => {
-        const handleGoogleResponse = async () => {
-            if (response?.type === 'success') {
-                const { id_token, access_token } = response.params;
-
-                try {
-                    setLoading(true);
-                    if (auth && isFirebaseConfigured && id_token) {
-                        // Sign in to Firebase with Google Credential
-                        const credential = GoogleAuthProvider.credential(id_token);
-                        await signInWithCredential(auth, credential);
-                    } else if (access_token) {
-                        // Fetch user info directly from Google API if Firebase is in offline/mock mode
-                        const userInfoResponse = await fetch('https://www.googleapis.com/userinfo/v2/me', {
-                            headers: { Authorization: `Bearer ${access_token}` },
-                        });
-                        const googleUser = await userInfoResponse.json();
-
-                        const appUser: AppUser = {
-                            uid: googleUser.id || 'google_' + Date.now(),
-                            displayName: googleUser.name || googleUser.given_name || 'Utilisateur Google',
-                            email: googleUser.email || null,
-                            photoURL: googleUser.picture || null,
-                            isAnonymous: false,
-                        };
-
-                        setUser(appUser);
-                        await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(appUser));
-                    }
-                } catch (error) {
-                    console.error('[AuthContext] Google sign-in error:', error);
-                } finally {
-                    setLoading(false);
-                }
-            }
-        };
-
-        handleGoogleResponse();
-    }, [response]);
-
     const signInWithGoogle = useCallback(async () => {
         try {
             setLoading(true);
-            // Sur le Web, utiliser directement le popup natif Firebase pour éviter les erreurs d'URI de redirection
-            if (Platform.OS === 'web' && auth && isFirebaseConfigured) {
-                const provider = new GoogleAuthProvider();
-                provider.setCustomParameters({ prompt: 'select_account' });
-                await signInWithPopup(auth, provider);
+
+            if (Platform.OS === 'web') {
+                // Navigateur Web : Popup Firebase OAuth officiel
+                if (auth && isFirebaseConfigured) {
+                    const provider = new GoogleAuthProvider();
+                    provider.setCustomParameters({ prompt: 'select_account' });
+                    await signInWithPopup(auth, provider);
+                }
             } else {
-                await promptAsync();
-            }
-        } catch (error: any) {
-            console.error('[AuthContext] Prompt Google error:', error);
-            // Si le popup web est bloqué ou échoue, fallback sur promptAsync
-            if (Platform.OS === 'web' && error?.code !== 'auth/popup-closed-by-user') {
-                try {
-                    await promptAsync();
-                } catch (fallbackError) {
-                    console.error('[AuthContext] Fallback promptAsync error:', fallbackError);
+                // Mobile Natif (Android / iOS) : Nitro One-Tap / Credential Manager
+                const response = await GoogleOneTapSignIn.presentExplicitSignIn();
+
+                if (isSuccessResponse(response)) {
+                    const { idToken, user: googleUser } = response.data;
+
+                    if (auth && isFirebaseConfigured && idToken) {
+                        // Connexion Firebase avec le jeton Google natif
+                        const credential = GoogleAuthProvider.credential(idToken);
+                        await signInWithCredential(auth, credential);
+                    } else if (googleUser) {
+                        // Mode déconnecté / local
+                        const appUser: AppUser = {
+                            uid: googleUser.id || 'google_' + Date.now(),
+                            displayName: googleUser.name || googleUser.givenName || 'Utilisateur Google',
+                            email: googleUser.email || null,
+                            photoURL: googleUser.photo || null,
+                            isAnonymous: false,
+                        };
+                        setUser(appUser);
+                        await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(appUser));
+                    }
                 }
             }
+        } catch (error: any) {
+            console.error('[AuthContext] Google Sign-In error:', error);
         } finally {
             setLoading(false);
         }
-    }, [promptAsync]);
+    }, []);
 
     const signOut = useCallback(async () => {
         try {
             setLoading(true);
+
+            if (Platform.OS !== 'web') {
+                await GoogleOneTapSignIn.signOut().catch(() => {});
+            }
+
             if (auth && isFirebaseConfigured) {
                 await firebaseSignOut(auth);
             }
+
             await AsyncStorage.removeItem(USER_STORAGE_KEY);
             setUser(null);
         } catch (error) {

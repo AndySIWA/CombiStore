@@ -165,16 +165,16 @@ export default function StoreScreen() {
                                 resizeMode="contain"
                             />
                         </Animated.View>
-                        <View>
-                            <Text style={[styles.headerTitle, { color: theme.text }]}>Explorer</Text>
-                            <Text style={[styles.headerSlogan, { color: theme.textSecondary }]}>
-                                {isOffline ? '⚡ Mode Hors-Ligne Actif' : 'Nouveautés publiées'}
+                        <View style={styles.headerTitleWrap}>
+                            <Text style={[styles.headerTitle, { color: theme.text }]} numberOfLines={1}>Explorer</Text>
+                            <Text style={[styles.headerSlogan, { color: theme.textSecondary }]} numberOfLines={1}>
+                                {isOffline ? '⚡ Mode Hors-Ligne' : 'Nouveautés publiées'}
                             </Text>
                         </View>
                     </TouchableOpacity>
 
                     <View style={styles.headerRight}>
-                        {/* Auth / Profile Button */}
+                        {/* Auth / Profile Button (Compact Icon Only) */}
                         {user ? (
                             <TouchableOpacity
                                 onPress={() => setProfileModalVisible(true)}
@@ -202,13 +202,12 @@ export default function StoreScreen() {
                                 onPress={signInWithGoogle}
                                 disabled={authLoading}
                                 style={[
-                                    styles.loginBtn,
+                                    styles.headerIconBtn,
                                     { backgroundColor: theme.surface, borderColor: theme.border }
                                 ]}
                                 activeOpacity={0.7}
                             >
-                                <FontAwesome6 name="google" size={14} color="#EA4335" style={{ marginRight: 6 }} />
-                                <Text style={[styles.loginBtnText, { color: theme.text }]}>Connexion</Text>
+                                <FontAwesome6 name="google" size={16} color="#EA4335" />
                             </TouchableOpacity>
                         )}
 
@@ -219,7 +218,7 @@ export default function StoreScreen() {
                         >
                             <FontAwesome6
                                 name="arrows-rotate"
-                                size={17}
+                                size={16}
                                 color={theme.text}
                                 style={refreshingRemote ? { opacity: 0.4 } : undefined}
                             />
@@ -257,14 +256,14 @@ export default function StoreScreen() {
                 {isOffline && (
                     <View style={[styles.offlineBanner, { backgroundColor: theme.surface, borderColor: 'rgba(16, 185, 129, 0.3)' }]}>
                         <Text style={styles.offlineBannerIcon}>⚡</Text>
-                        <Text style={[styles.offlineBannerText, { color: theme.textSecondary }]}>
-                            Mode hors-ligne : catalogue disponible depuis le stockage local
+                        <Text style={[styles.offlineBannerText, { color: theme.textSecondary }]} numberOfLines={1}>
+                            Mode hors-ligne : catalogue local
                         </Text>
                     </View>
                 )}
             </LinearGradient>
 
-            {/* Category pills with Favorites integration */}
+            {/* Category pills with Favorites integration (Icon only for Favorites) */}
             <View style={styles.pillsContainer}>
                 <FlatList
                     horizontal={true}
@@ -273,7 +272,7 @@ export default function StoreScreen() {
                         { id: ALL_CAT_ID, name: 'Toutes', icon: '🌟', color: theme.accent },
                         {
                             id: FAVORITES_CAT_ID,
-                            name: `Favoris${favoritesCount > 0 ? ` (${favoritesCount})` : ''}`,
+                            name: '',
                             icon: '❤️',
                             color: '#EF4444'
                         },
@@ -284,17 +283,19 @@ export default function StoreScreen() {
                     contentContainerStyle={styles.pills}
                     renderItem={({ item: cat }) => {
                         const active = activeCategory === cat.id;
+                        const isFav = cat.id === FAVORITES_CAT_ID;
                         return (
                             <TouchableOpacity
                                 onPress={() => setActiveCategory(cat.id)}
                                 style={[
                                     styles.pill,
+                                    isFav && styles.favPill,
                                     { backgroundColor: theme.surface, borderColor: theme.border },
                                     active && { backgroundColor: cat.color, borderColor: cat.color },
                                 ]}
                             >
                                 <Text style={[styles.pillText, { color: theme.textSecondary }, active && { color: COLORS.white }]}>
-                                    {cat.icon} {cat.name}
+                                    {cat.icon}{cat.name ? ` ${cat.name}` : ''}
                                 </Text>
                             </TouchableOpacity>
                         );
@@ -479,7 +480,7 @@ const styles = StyleSheet.create({
     },
     header: {
         paddingTop: 48,
-        paddingHorizontal: 24,
+        paddingHorizontal: 20,
         paddingBottom: SPACING.md,
     },
     headerRow: {
@@ -491,25 +492,29 @@ const styles = StyleSheet.create({
     headerLeft: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 14,
+        gap: 12,
         flex: 1,
+        marginRight: 8,
     },
     logoContainer: {
-        width: 54,
-        height: 54,
+        width: 48,
+        height: 48,
     },
     headerLogo: {
         width: '100%',
         height: '100%',
     },
+    headerTitleWrap: {
+        flex: 1,
+    },
     headerTitle: {
         fontFamily: FONT.bold,
-        fontSize: 23,
-        letterSpacing: -0.8,
+        fontSize: 21,
+        letterSpacing: -0.6,
     },
     headerSlogan: {
         fontFamily: FONT.medium,
-        fontSize: 12.5,
+        fontSize: 12,
         marginTop: 1,
         opacity: 0.8,
     },
@@ -518,23 +523,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         gap: 8,
     },
-    loginBtn: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 11,
-        paddingVertical: 8,
-        borderRadius: 14,
-        borderWidth: 1,
-        height: 40,
-    },
-    loginBtnText: {
-        fontFamily: FONT.semiBold,
-        fontSize: 12,
-    },
     userAvatarBtn: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: 38,
+        height: 38,
+        borderRadius: 19,
         borderWidth: 2,
         alignItems: 'center',
         justifyContent: 'center',
@@ -544,11 +536,11 @@ const styles = StyleSheet.create({
     userAvatarImg: {
         width: '100%',
         height: '100%',
-        borderRadius: 20,
+        borderRadius: 19,
     },
     userInitials: {
         fontFamily: FONT.bold,
-        fontSize: 16,
+        fontSize: 15,
     },
     syncBadge: {
         position: 'absolute',
@@ -562,15 +554,15 @@ const styles = StyleSheet.create({
         fontSize: 8,
     },
     headerIconBtn: {
-        width: 40,
-        height: 40,
-        borderRadius: 14,
+        width: 38,
+        height: 38,
+        borderRadius: 13,
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
     },
     headerIconText: {
-        fontSize: 18,
+        fontSize: 17,
     },
     searchBar: {
         flexDirection: 'row',
@@ -598,14 +590,14 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginTop: 10,
-        paddingVertical: 8,
+        paddingVertical: 7,
         paddingHorizontal: 12,
         borderRadius: 12,
         borderWidth: 1,
         gap: 8,
     },
     offlineBannerIcon: {
-        fontSize: 14,
+        fontSize: 13,
         color: '#10B981',
     },
     offlineBannerText: {
@@ -617,15 +609,21 @@ const styles = StyleSheet.create({
         marginBottom: 4,
     },
     pills: {
-        paddingHorizontal: 24,
+        paddingHorizontal: 20,
         paddingVertical: 8,
-        gap: 10,
+        gap: 8,
     },
     pill: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
+        paddingHorizontal: 15,
+        paddingVertical: 7.5,
         borderRadius: 20,
         borderWidth: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    favPill: {
+        paddingHorizontal: 13,
+        minWidth: 42,
     },
     pillText: {
         fontFamily: FONT.semiBold,
@@ -648,7 +646,7 @@ const styles = StyleSheet.create({
         height: 1,
     },
     grid: {
-        paddingHorizontal: 24,
+        paddingHorizontal: 20,
         paddingBottom: 120,
     },
     row: {

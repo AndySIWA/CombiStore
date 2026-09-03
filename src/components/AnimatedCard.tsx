@@ -164,7 +164,7 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
                   )}
                 </Animated.View>
 
-                {/* Badges and Favorite Button */}
+                {/* Badges and Favorite Button (Compact Icon Only) */}
                 <View style={styles.topRightActions}>
                   <TouchableOpacity
                     onPress={handleFavoritePress}
@@ -185,26 +185,25 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
                     <Animated.View style={heartAnimatedStyle}>
                       <FontAwesome6
                         name="heart"
-                        size={13}
+                        size={12}
                         color={favorite ? '#EF4444' : theme.textMuted}
                         solid={favorite}
                       />
                     </Animated.View>
                   </TouchableOpacity>
 
-                  {/* Offline/Online Badge Tag */}
+                  {/* Compact Offline/Online Icon Badge */}
                   <View style={[
                     styles.modeTag,
                     isOfflineReady
                       ? { backgroundColor: 'rgba(16, 185, 129, 0.12)', borderColor: 'rgba(16, 185, 129, 0.25)' }
                       : { backgroundColor: 'rgba(59, 130, 246, 0.12)', borderColor: 'rgba(59, 130, 246, 0.25)' }
                   ]}>
-                    <Text style={[
-                      styles.modeTagText,
-                      { color: isOfflineReady ? '#10b981' : '#60a5fa' }
-                    ]}>
-                      {isOfflineReady ? '⚡ Offline' : '🌐 Web'}
-                    </Text>
+                    {isOfflineReady ? (
+                      <FontAwesome6 name="bolt" size={10} color="#10B981" />
+                    ) : (
+                      <FontAwesome6 name="globe" size={10} color="#60A5FA" />
+                    )}
                   </View>
                 </View>
               </View>
@@ -261,7 +260,7 @@ const styles = StyleSheet.create({
   },
   card: {
     borderRadius: 22,
-    padding: 14,
+    padding: 13,
     borderWidth: 1,
     minHeight: 146,
     position: 'relative',
@@ -300,9 +299,9 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   favButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -324,15 +323,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   modeTag: {
-    paddingHorizontal: 6,
-    paddingVertical: 2.5,
-    borderRadius: 7,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     borderWidth: 1,
-  },
-  modeTagText: {
-    fontFamily: FONT.bold,
-    fontSize: 9.5,
-    letterSpacing: 0.2,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   content: {
     flex: 1,
