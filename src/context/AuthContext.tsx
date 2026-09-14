@@ -10,7 +10,19 @@ import {
     User as FirebaseUser,
 } from 'firebase/auth';
 import { auth, isFirebaseConfigured } from '../services/firebase';
-import { GoogleOneTapSignIn, isSuccessResponse } from 'react-native-nitro-google-signin';
+
+let GoogleOneTapSignIn: any = null;
+let isSuccessResponse: any = null;
+
+if (Platform.OS !== 'web') {
+    try {
+        const nitroGoogle = require('react-native-nitro-google-signin');
+        GoogleOneTapSignIn = nitroGoogle.GoogleOneTapSignIn;
+        isSuccessResponse = nitroGoogle.isSuccessResponse;
+    } catch (e) {
+        console.warn('[AuthContext] Could not load react-native-nitro-google-signin:', e);
+    }
+}
 
 export interface AppUser {
     uid: string;

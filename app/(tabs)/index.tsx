@@ -166,7 +166,7 @@ export default function StoreScreen() {
                             />
                         </Animated.View>
                         <View style={styles.headerTitleWrap}>
-                            <Text style={[styles.headerTitle, { color: theme.text }]} numberOfLines={1}>Explorer</Text>
+                            <Text style={[styles.headerTitle, { color: theme.text }]} numberOfLines={1}>Explorer ✨ (OTA Test)</Text>
                             <Text style={[styles.headerSlogan, { color: theme.textSecondary }]} numberOfLines={1}>
                                 {isOffline ? '⚡ Mode Hors-Ligne' : 'Nouveautés publiées'}
                             </Text>

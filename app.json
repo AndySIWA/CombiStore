@@ -34,6 +34,12 @@
       "expo-dev-client",
       "expo-web-browser",
       [
+        "expo-updates",
+        {
+          "username": "andysmart"
+        }
+      ],
+      [
         "react-native-nitro-google-signin",
         {
           "iosUrlScheme": "com.googleusercontent.apps.130481851392-o56691hpmmlhb52tckmm32dnc9ftmtgn"
@@ -50,6 +56,9 @@
       "policy": "appVersion"
     },
     "updates": {
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 5000,
       "url": "https://u.expo.dev/f49ce7bf-d8c3-4cf9-8e7c-80b50f35dc78"
     }
   }
