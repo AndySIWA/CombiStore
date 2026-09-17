@@ -269,7 +269,7 @@ export default function StoreScreen() {
                     horizontal={true}
                     showsHorizontalScrollIndicator={false}
                     data={[
-                        { id: ALL_CAT_ID, name: 'Toutes', icon: '🌟', color: theme.accent },
+                        { id: ALL_CAT_ID, name: 'All', icon: '🌍', color: theme.accent },
                         {
                             id: FAVORITES_CAT_ID,
                             name: '',

@@ -13,12 +13,14 @@ import { auth, isFirebaseConfigured } from '../services/firebase';
 
 let GoogleOneTapSignIn: any = null;
 let isSuccessResponse: any = null;
+let isNoSavedCredentialFoundResponse: any = null;
 
 if (Platform.OS !== 'web') {
     try {
         const nitroGoogle = require('react-native-nitro-google-signin');
         GoogleOneTapSignIn = nitroGoogle.GoogleOneTapSignIn;
         isSuccessResponse = nitroGoogle.isSuccessResponse;
+        isNoSavedCredentialFoundResponse = nitroGoogle.isNoSavedCredentialFoundResponse;
     } catch (e) {
         console.warn('[AuthContext] Could not load react-native-nitro-google-signin:', e);
     }
@@ -49,7 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Initialisation native de Google Sign-In (Android Credential Manager / iOS SDK)
     useEffect(() => {
-        if (Platform.OS !== 'web') {
+        if (Platform.OS !== 'web' && GoogleOneTapSignIn) {
             const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
             if (webClientId) {
                 try {
@@ -121,20 +123,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 }
             } else {
                 // Mobile Natif (Android / iOS) : Nitro One-Tap / Credential Manager
-                const response = await GoogleOneTapSignIn.presentExplicitSignIn();
+                if (!GoogleOneTapSignIn) {
+                    console.warn('[AuthContext] GoogleOneTapSignIn module not loaded');
+                    return;
+                }
 
-                if (isSuccessResponse(response)) {
+                // 1. Vérification des services Google Play
+                try {
+                    await GoogleOneTapSignIn.checkPlayServices(true);
+                } catch (playErr) {
+                    console.warn('[AuthContext] Play Services check warning:', playErr);
+                }
+
+                // 2. Présentation du sélecteur de compte natif
+                let response = await GoogleOneTapSignIn.presentExplicitSignIn().catch((err: any) => {
+                    console.warn('[AuthContext] presentExplicitSignIn error:', err);
+                    return null;
+                });
+
+                // 3. Fallback si aucun identifiant sauvegardé
+                if (!response || (isNoSavedCredentialFoundResponse && isNoSavedCredentialFoundResponse(response))) {
+                    response = await GoogleOneTapSignIn.createAccount().catch(() => null);
+                }
+
+                // 4. Fallback vers la méthode signIn classique
+                if (!response || (isSuccessResponse && !isSuccessResponse(response))) {
+                    response = await GoogleOneTapSignIn.signIn().catch(() => null);
+                }
+
+                if (isSuccessResponse && isSuccessResponse(response) && response?.data) {
                     const { idToken, user: googleUser } = response.data;
+                    let signedInWithFirebase = false;
 
                     if (auth && isFirebaseConfigured && idToken) {
-                        // Connexion Firebase avec le jeton Google natif
-                        const credential = GoogleAuthProvider.credential(idToken);
-                        await signInWithCredential(auth, credential);
-                    } else if (googleUser) {
-                        // Mode déconnecté / local
+                        try {
+                            const credential = GoogleAuthProvider.credential(idToken);
+                            await signInWithCredential(auth, credential);
+                            signedInWithFirebase = true;
+                        } catch (fbErr) {
+                            console.warn('[AuthContext] Firebase signInWithCredential failed, using local user state:', fbErr);
+                        }
+                    }
+
+                    // Mode local / fallback si Firebase n'a pas mis à jour l'utilisateur
+                    if (!signedInWithFirebase && googleUser) {
                         const appUser: AppUser = {
                             uid: googleUser.id || 'google_' + Date.now(),
-                            displayName: googleUser.name || googleUser.givenName || 'Utilisateur Google',
+                            displayName: googleUser.name || googleUser.givenName || googleUser.email || 'Utilisateur Google',
                             email: googleUser.email || null,
                             photoURL: googleUser.photo || null,
                             isAnonymous: false,
@@ -142,6 +177,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         setUser(appUser);
                         await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(appUser));
                     }
+                } else {
+                    console.warn('[AuthContext] Google One-Tap response was not successful:', response);
                 }
             }
         } catch (error: any) {
