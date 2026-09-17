@@ -166,7 +166,7 @@ export default function StoreScreen() {
                             />
                         </Animated.View>
                         <View style={styles.headerTitleWrap}>
-                            <Text style={[styles.headerTitle, { color: theme.text }]} numberOfLines={1}>Explorer ✨ (OTA Test)</Text>
+                            <Text style={[styles.headerTitle, { color: theme.text }]} numberOfLines={1}>Explorer</Text>
                             <Text style={[styles.headerSlogan, { color: theme.textSecondary }]} numberOfLines={1}>
                                 {isOffline ? '⚡ Mode Hors-Ligne' : 'Nouveautés publiées'}
                             </Text>
@@ -274,10 +274,10 @@ export default function StoreScreen() {
                             id: FAVORITES_CAT_ID,
                             name: '',
                             icon: '❤️',
-                            color: '#EF4444'
+                            color: '#f7d5b6ff'
                         },
-                        { id: OFFLINE_CAT_ID, name: 'Hors-ligne', icon: '⚡', color: '#10B981' },
-                        ...categories.filter(c => c.id !== ALL_CAT_ID)
+                        ...categories.filter(c => c.id !== ALL_CAT_ID),
+                        { id: OFFLINE_CAT_ID, name: 'Hors-ligne', icon: '📴', color: '#10B981' },
                     ]}
                     keyExtractor={c => c.id}
                     contentContainerStyle={styles.pills}
