@@ -196,7 +196,7 @@ export default function InfoScreen() {
                         }]}>
                             <View style={[styles.profileImageContainer, { borderColor: theme.accent, borderWidth: 3 }]}>
                                 <Image
-                                    source={devData.photoUrl ? { uri: devData.photoUrl } : require('../assets/Andy_bureau_nocturne.jpg')}
+                                    source={devData.photoUrl ? { uri: devData.photoUrl } : require('../assets/Andy_SIWA_Profil.png')}
                                     style={styles.profileImage}
                                 />
                             </View>
