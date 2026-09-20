@@ -384,7 +384,7 @@ export default function StoreScreen() {
                     onPress={() => setProfileModalVisible(false)}
                 >
                     <Pressable
-                        style={[styles.profileCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                        style={[styles.profileCard, { backgroundColor: theme.modalSurface, borderColor: theme.border }]}
                         onPress={(e) => e.stopPropagation()}
                     >
                         {/* Header with Avatar */}
@@ -407,9 +407,9 @@ export default function StoreScreen() {
                                 </Text>
                             )}
 
-                            <View style={styles.cloudBadge}>
+                            {/* <View style={styles.cloudBadge}>
                                 <Text style={styles.cloudBadgeText}>🟢 Synchronisation Cloud Active</Text>
-                            </View>
+                            </View> */}
                         </View>
 
                         {/* User Stats Card */}
@@ -432,10 +432,10 @@ export default function StoreScreen() {
                                     await syncWithCloud();
                                     Alert.alert('Synchronisation', 'Vos favoris et préférences sont à jour dans le cloud.');
                                 }}
-                                style={[styles.modalBtn, { backgroundColor: theme.accent + '20', borderColor: theme.accent + '50' }]}
+                                style={[styles.modalBtn, { backgroundColor: theme.accent + '40', borderColor: theme.accent + '50' }]}
                             >
-                                <FontAwesome6 name="arrows-rotate" size={14} color={theme.accent} style={{ marginRight: 8 }} />
-                                <Text style={[styles.modalBtnText, { color: theme.accent }]}>Synchroniser maintenant</Text>
+                                <FontAwesome6 name="arrows-rotate" size={14} color={theme.modal_accent} style={{ marginRight: 8 }} />
+                                <Text style={[styles.modalBtnText, { color: theme.modal_accent }]}>Synchroniser maintenant</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity
@@ -446,7 +446,14 @@ export default function StoreScreen() {
                                 style={[styles.modalBtn, styles.logoutBtn]}
                             >
                                 <FontAwesome6 name="arrow-right-from-bracket" size={14} color="#EF4444" style={{ marginRight: 8 }} />
-                                <Text style={[styles.modalBtnText, { color: '#EF4444' }]}>Se déconnecter</Text>
+                                <Text
+                                    style={[
+                                        styles.modalBtnText,
+                                        { color: mode === 'dark' ? '#ff5d5dff' : '#c03434ff' }
+                                    ]}
+                                >
+                                    Se déconnecter
+                                </Text>
                             </TouchableOpacity>
                         </View>
                     </Pressable>
@@ -803,7 +810,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
     },
     logoutBtn: {
-        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        backgroundColor: 'rgba(239, 68, 68, 0.3)',
         borderColor: 'rgba(239, 68, 68, 0.25)',
     },
 });
