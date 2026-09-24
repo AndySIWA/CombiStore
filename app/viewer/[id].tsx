@@ -231,8 +231,21 @@ export default function ViewerScreen() {
                         sharedCookiesEnabled={true}
                         allowsInlineMediaPlayback={true}
                         mediaPlaybackRequiresUserAction={false}
-                        originWhitelist={['*']}
+                        originWhitelist={['https://*', 'http://*', 'about:blank', 'data:*']}
+                        allowFileAccess={false}
+                        allowFileAccessFromFileURLs={false}
+                        allowUniversalAccessFromFileURLs={false}
                         scalesPageToFit={true}
+                        onShouldStartLoadWithRequest={(request: { url: string }) => {
+                            // Intercepter et sécuriser les redirections web/schémas externes
+                            const reqUrl = request.url;
+                            if (reqUrl.startsWith('http://') || reqUrl.startsWith('https://') || reqUrl.startsWith('about:blank') || reqUrl.startsWith('data:')) {
+                                return true;
+                            }
+                            // Tenter d'ouvrir les schémas personnalisés (ex: mailto, tel, whatsapp) de façon externe sécurisée
+                            Linking.openURL(reqUrl).catch(() => {});
+                            return false;
+                        }}
                     />
                 </View>
             )}

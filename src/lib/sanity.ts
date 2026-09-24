@@ -1,17 +1,17 @@
-import { createClient } from '@sanity/client'
+import { createClient } from '@sanity/client';
 
 export const client = createClient({
   projectId: process.env.EXPO_PUBLIC_SANITY_PROJECT_ID || '7a6tocy4',
   dataset: process.env.EXPO_PUBLIC_SANITY_DATASET || 'production',
   useCdn: false,
-  apiVersion: '2024-03-01', // Utilisez la date du jour
-})
+  apiVersion: '2024-03-01',
+});
 
-export const getRemoteAppsQuery = `*[_type == "miniApp"] {
+export const getRemoteAppsQuery = `*[_type == "miniApp" && coalesce(isPublished, true) == true] {
   "id": _id,
   name,
   description,
-  "categoryId": lower(category->name),
+  "categoryId": lower(coalesce(category->name.current, category->name, category->title)),
   sourceType,
   source,
   "icon": coalesce(icon, "🌐"),
@@ -19,8 +19,9 @@ export const getRemoteAppsQuery = `*[_type == "miniApp"] {
   tags,
   featured,
   author,
+  isPublished,
   "lastUpdated": coalesce(lastUpdated, _updatedAt)
-} | order(lastUpdated desc)`
+} | order(lastUpdated desc)`;
 
 export const getCategoriesQuery = `*[_type == "category"] {
   "id": _id,
@@ -29,21 +30,22 @@ export const getCategoriesQuery = `*[_type == "category"] {
   description,
   icon,
   color
-}`
+}`;
 
-export const getFeaturedAppsQuery = `*[_type == "miniApp" && featured == true] {
+export const getFeaturedAppsQuery = `*[_type == "miniApp" && coalesce(isPublished, true) == true && featured == true] {
   "id": _id,
   name,
   description,
-  "categoryId": lower(category->name.current),
+  "categoryId": lower(coalesce(category->name.current, category->name, category->title)),
   sourceType,
   source,
-  icon,
+  "icon": coalesce(icon, "🌐"),
   version,
   tags,
   author,
+  isPublished,
   "lastUpdated": coalesce(lastUpdated, _updatedAt)
-} | order(lastUpdated desc)`
+} | order(lastUpdated desc)`;
 
 export const getDeveloperQuery = `*[_type == "developer"][0] {
   name,
@@ -60,4 +62,4 @@ export const getDeveloperQuery = `*[_type == "developer"][0] {
     email,
     portfolio
   }
-}`
+}`;

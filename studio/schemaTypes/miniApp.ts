@@ -53,5 +53,37 @@ export default defineType({
       type: 'string',
       initialValue: '1.0.0',
     }),
+    defineField({
+      name: 'isPublished',
+      title: 'Publié dans le Store',
+      type: 'boolean',
+      initialValue: true,
+    }),
+    defineField({
+      name: 'featured',
+      title: 'Mise en Avant',
+      type: 'boolean',
+      initialValue: false,
+    }),
+    defineField({
+      name: 'tags',
+      title: 'Tags / Mots-clés',
+      type: 'array',
+      of: [{type: 'string'}],
+      options: {
+        layout: 'tags',
+      },
+    }),
+    defineField({
+      name: 'author',
+      title: 'Auteur / Créateur',
+      type: 'string',
+    }),
+    defineField({
+      name: 'lastUpdated',
+      title: 'Dernière Mise à Jour',
+      type: 'datetime',
+      initialValue: () => new Date().toISOString(),
+    }),
   ],
 })

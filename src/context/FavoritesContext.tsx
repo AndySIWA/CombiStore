@@ -112,18 +112,19 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
                 ? prevFavorites.filter(id => id !== appId)
                 : [...prevFavorites, appId];
 
-            // Save to AsyncStorage immediately (Offline-First)
-            AsyncStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(updated)).catch(e => {
-                console.error('[FavoritesContext] Error saving favorites to storage:', e);
-            });
-
-            // Save to Cloud Firestore if connected
-            if (user && db && isFirebaseConfigured) {
-                const userDocRef = doc(db, 'users', user.uid);
-                setDoc(userDocRef, { favorites: updated, updatedAt: Date.now() }, { merge: true }).catch(e => {
-                    console.error('[FavoritesContext] Error updating favorites in cloud:', e);
+            // Defer side effects outside synchronous React state computation
+            setTimeout(() => {
+                AsyncStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(updated)).catch(e => {
+                    console.error('[FavoritesContext] Error saving favorites to storage:', e);
                 });
-            }
+
+                if (user && db && isFirebaseConfigured) {
+                    const userDocRef = doc(db, 'users', user.uid);
+                    setDoc(userDocRef, { favorites: updated, updatedAt: Date.now() }, { merge: true }).catch(e => {
+                        console.error('[FavoritesContext] Error updating favorites in cloud:', e);
+                    });
+                }
+            }, 0);
 
             return updated;
         });
