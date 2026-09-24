@@ -1,5 +1,8 @@
 import {defineType, defineField} from 'sanity'
 
+/**
+ * Schéma Sanity CMS pour la fiche du Développeur (Profil, compétences et coordonnées).
+ */
 export default defineType({
   name: 'developer',
   title: 'Développeur',

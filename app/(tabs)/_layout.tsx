@@ -7,12 +7,13 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { useTheme } from '../../src/context/ThemeContext';
-import { ANIMATIONS } from '../../src/constants/animations';
 
+/**
+ * Composant d'icône d'onglet avec animation de zoom au survol / sélection.
+ */
 function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
   const scale = useSharedValue(1);
 
-  // Update animation when focused state changes
   useEffect(() => {
     if (focused) {
       scale.value = withSpring(1.2, {
@@ -40,6 +41,10 @@ function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
   );
 }
 
+/**
+ * Layout de navigation inférieure par onglets (Tabs Layout) de l'application.
+ * Contient les onglets "Explorer" (catalogue), "Catégories" (filtre) et "Mes Apps" (profil et gestion).
+ */
 export default function TabLayout() {
   const { theme, mode } = useTheme();
 

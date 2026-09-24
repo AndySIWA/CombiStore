@@ -3,23 +3,28 @@ import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withTiming,
   withSpring,
-  Easing,
-  interpolate,
-  Extrapolate,
 } from 'react-native-reanimated';
 import { ANIMATIONS } from '../constants/animations';
 import { FONT } from '../constants/theme';
 
+/** Propriétés de la barre d'onglets animée */
 interface TabBarAnimatedProps {
+  /** Index de l'onglet actif */
   activeIndex: number;
+  /** Liste des onglets avec libellé et icône */
   tabs: { label: string; icon: string }[];
+  /** Handler lors de la sélection d'un onglet */
   onTabPress: (index: number) => void;
+  /** Couleur active de l'indicateur */
   color?: string;
+  /** Couleur de fond de la barre */
   backgroundColor?: string;
 }
 
+/**
+ * Barre de navigation par onglets animée avec indicateur coulissant.
+ */
 export const TabBarAnimated: React.FC<TabBarAnimatedProps> = ({
   activeIndex,
   tabs,
@@ -46,7 +51,7 @@ export const TabBarAnimated: React.FC<TabBarAnimatedProps> = ({
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
-      {/* Animated indicator */}
+      {/* Indicateur de position actif */}
       <Animated.View
         style={[
           styles.indicator,
@@ -55,7 +60,7 @@ export const TabBarAnimated: React.FC<TabBarAnimatedProps> = ({
         ]}
       />
 
-      {/* Tab buttons */}
+      {/* Boutons d'onglets */}
       {tabs.map((tab, index) => (
         <TouchableOpacity
           key={index}

@@ -1,4 +1,6 @@
-// Export all animated components for easier imports
+/**
+ * Fichier d'exportation centralisé pour l'ensemble des composants UI de CombiStore.
+ */
 export { AnimatedCard } from './AnimatedCard';
 export { AnimatedBackground } from './AnimatedBackground';
 export { AnimatedPill } from './AnimatedPill';

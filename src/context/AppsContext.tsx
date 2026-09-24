@@ -9,6 +9,9 @@ const CUSTOM_APPS_KEY = '@combistore_custom_apps';
 const INITIALIZED_KEY = '@combistore_initialized';
 const REMOTE_CACHE_KEY = '@combistore_remote_apps_cache';
 
+/**
+ * Synchronise la liste des applications locales déjà importées avec les données fraîches du CMS distant Sanity.
+ */
 const syncImportedApps = (localApps: MiniApp[] = [], remoteApps: RemoteApp[] = []) => {
     const safeLocalApps = Array.isArray(localApps) ? localApps : [];
     const safeRemoteApps = Array.isArray(remoteApps) ? remoteApps : [];
@@ -39,21 +42,38 @@ const syncImportedApps = (localApps: MiniApp[] = [], remoteApps: RemoteApp[] = [
     });
 };
 
+/**
+ * Interface définissant les propriétés et méthodes fournies par le contexte des applications.
+ */
 interface AppsContextType {
+    /** Liste des applications installées/présentes localement */
     apps: MiniApp[];
+    /** Liste des applications disponibles sur le catalogue distant (Sanity) */
     remoteApps: RemoteApp[];
+    /** Indique si le chargement initial est en cours */
     loading: boolean;
+    /** Indique si le rafraîchissement depuis Sanity est en cours */
     refreshingRemote: boolean;
+    /** Indique si l'application est actuellement en mode hors-ligne */
     isOffline: boolean;
+    /** Ajoute une nouvelle application personnalisée */
     addApp: (app: Omit<MiniApp, 'id' | 'addedAt'>) => Promise<MiniApp>;
+    /** Supprime une application installée par son identifiant */
     removeApp: (id: string) => Promise<void>;
+    /** Met à jour les propriétés d'une application */
     updateApp: (id: string, partial: Partial<MiniApp>) => Promise<void>;
+    /** Force la récupération des applications distantes depuis Sanity CMS */
     fetchRemoteApps: () => Promise<void>;
+    /** Importe une application distante dans la liste des applications locales */
     importRemoteApp: (remoteApp: RemoteApp) => Promise<MiniApp | null>;
 }
 
 const AppsContext = createContext<AppsContextType | undefined>(undefined);
 
+/**
+ * Provider gérant l'état global du catalogue d'applications, le stockage local AsyncStorage,
+ * et la synchronisation avec Sanity CMS.
+ */
 export function AppsProvider({ children }: { children: ReactNode }) {
     const [apps, setApps] = useState<MiniApp[]>([]);
     const [remoteApps, setRemoteApps] = useState<RemoteApp[]>([]);
@@ -61,28 +81,31 @@ export function AppsProvider({ children }: { children: ReactNode }) {
     const [refreshingRemote, setRefreshingRemote] = useState(false);
     const [isOffline, setIsOffline] = useState(false);
 
+    /** Sauvegarde la liste des applications dans le stockage local AsyncStorage */
     const saveApps = async (newApps: MiniApp[]) => {
         try {
             if (!Array.isArray(newApps)) {
-                console.error('[AppsContext] saveApps called with non-array:', newApps);
+                console.error('[AppsContext] saveApps appelé avec une valeur non-tableau :', newApps);
                 return;
             }
             await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newApps));
         } catch (e) {
-            console.error('Error saving apps:', e);
+            console.error('Erreur lors de la sauvegarde des apps :', e);
         }
     };
 
+    /** Sauvegarde la mise en cache des applications distantes */
     const saveRemoteAppsCache = async (cached: RemoteApp[]) => {
         try {
             if (Array.isArray(cached)) {
                 await AsyncStorage.setItem(REMOTE_CACHE_KEY, JSON.stringify(cached));
             }
         } catch (e) {
-            console.error('Error saving remote apps cache:', e);
+            console.error('Erreur lors de la sauvegarde du cache remote apps :', e);
         }
     };
 
+    /** Charge les applications locales et le cache distant au démarrage */
     const loadApps = useCallback(async () => {
         try {
             // 1. Charger les apps locales enregistrées
@@ -96,7 +119,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
                 }
             }
 
-            // 2. Charger le cache persistant des remote apps (catalogue Explorer)
+            // 2. Charger le cache persistant des remote apps
             const storedRemote = await AsyncStorage.getItem(REMOTE_CACHE_KEY);
             if (storedRemote) {
                 const parsedRemote = JSON.parse(storedRemote);
@@ -111,7 +134,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
 
             return parsedApps;
         } catch (e) {
-            console.error('Error loading apps:', e);
+            console.error('Erreur lors du chargement des apps :', e);
             setApps(SAMPLE_APPS);
             return SAMPLE_APPS;
         } finally {
@@ -119,6 +142,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
         }
     }, []);
 
+    /** Récupère les applications distantes depuis Sanity CMS */
     const fetchRemoteApps = useCallback(async (baseApps?: MiniApp[]) => {
         setRefreshingRemote(true);
         try {
@@ -178,7 +202,6 @@ export function AppsProvider({ children }: { children: ReactNode }) {
                 } catch (_) {}
             }
 
-            // Si vraiment aucune app locale ni distante n'est disponible (ex: premier démarrage sans réseau)
             if (currentApps.length === 0 && (!storedRemote || JSON.parse(storedRemote).length === 0)) {
                 setApps(SAMPLE_APPS);
                 saveApps(SAMPLE_APPS);
@@ -197,6 +220,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
         initializeApps();
     }, [loadApps]);
 
+    /** Ajoute une application personnalisée créée par l'utilisateur */
     const addApp = useCallback(async (app: Omit<MiniApp, 'id' | 'addedAt'>) => {
         const iconValue = app.icon?.trim() || '🌐';
         const newApp: MiniApp = {
@@ -211,7 +235,6 @@ export function AppsProvider({ children }: { children: ReactNode }) {
             return updated;
         });
 
-        // Sauvegarder dans les custom apps
         const stored = await AsyncStorage.getItem(CUSTOM_APPS_KEY);
         let customApps: MiniApp[] = [];
         if (stored) {
@@ -226,8 +249,8 @@ export function AppsProvider({ children }: { children: ReactNode }) {
         return newApp;
     }, []);
 
+    /** Importe une application depuis le catalogue distant dans le magasin local */
     const importRemoteApp = useCallback(async (remoteApp: RemoteApp) => {
-        // Vérifier si déjà importé pour éviter les doublons avec le même remoteId
         const exists = apps.some(a => a.remoteId === remoteApp.id);
         if (exists) return null;
 
@@ -236,7 +259,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
             ...remoteApp,
             icon: iconValue,
             id: `app_${Date.now()}_${Math.random().toString(36).slice(2)}`,
-            remoteId: remoteApp.id, // On garde la trace du remoteId
+            remoteId: remoteApp.id,
             addedAt: Date.now(),
         };
 
@@ -249,6 +272,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
         return newApp;
     }, [apps]);
 
+    /** Supprime une application de la liste locale */
     const removeApp = useCallback(async (id: string) => {
         setApps(prevApps => {
             const updated = prevApps.filter(a => a.id !== id);
@@ -256,7 +280,6 @@ export function AppsProvider({ children }: { children: ReactNode }) {
             return updated;
         });
 
-        // Retirer des custom apps si présente
         const stored = await AsyncStorage.getItem(CUSTOM_APPS_KEY);
         if (stored) {
             const parsed = JSON.parse(stored);
@@ -267,6 +290,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
         }
     }, []);
 
+    /** Mettre à jour partiellement les informations d'une application */
     const updateApp = useCallback(async (id: string, partial: Partial<MiniApp>) => {
         setApps(prevApps => {
             const updated = prevApps.map(a => a.id === id ? { ...a, ...partial } : a);
@@ -274,7 +298,6 @@ export function AppsProvider({ children }: { children: ReactNode }) {
             return updated;
         });
 
-        // Mettre à jour dans les custom apps si présente
         const stored = await AsyncStorage.getItem(CUSTOM_APPS_KEY);
         if (stored) {
             const parsed = JSON.parse(stored);
@@ -305,10 +328,13 @@ export function AppsProvider({ children }: { children: ReactNode }) {
     );
 }
 
+/**
+ * Hook personnalisé permettant d'accéder aux fonctionnalités du contexte Apps.
+ */
 export function useApps() {
     const context = useContext(AppsContext);
     if (!context) {
-        throw new Error('useApps must be used within an AppsProvider');
+        throw new Error("useApps doit être utilisé à l'intérieur d'un AppsProvider");
     }
     return context;
 }

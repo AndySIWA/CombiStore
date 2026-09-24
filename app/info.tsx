@@ -26,6 +26,11 @@ interface DeveloperData {
     };
 }
 
+/**
+ * Écran d'informations générales "À propos" et Profil Développeur.
+ * Présente la vision du projet CombiStore, les fonctionnalités ainsi que la fiche détaillée
+ * du développeur récupérée dynamiquement via Sanity CMS.
+ */
 export default function InfoScreen() {
     const { theme, mode } = useTheme();
     // Par défaut sur la section Développeur

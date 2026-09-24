@@ -11,6 +11,11 @@ import { useCategories } from '../../src/context/CategoriesContext';
 import { useTheme } from '../../src/context/ThemeContext';
 import { MiniApp } from '../../src/types';
 
+/**
+ * Écran "Mes Apps" (Gestion et administration des Mini-Apps de l'utilisateur).
+ * Permet de visualiser la liste complète des applications installées, d'en créer de nouvelles,
+ * d'éditer ou de supprimer des applications personnalisées.
+ */
 export default function ManageAppsScreen() {
     const { apps, removeApp } = useApps();
     const { categories } = useCategories();

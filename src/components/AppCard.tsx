@@ -6,16 +6,27 @@ import { MiniApp, Category } from '../types';
 import { useTheme } from '../context/ThemeContext';
 import { useFavorites } from '../context/FavoritesContext';
 
+/** Propriétés du composant Carte d'Application Standard */
 interface AppCardProps {
+    /** MiniApp affichée */
     app: MiniApp;
+    /** Catégorie associée (optionnel) */
     category?: Category;
+    /** Handler lors d'un clic */
     onPress: () => void;
+    /** Handler lors d'un appui long (optionnel) */
     onLongPress?: () => void;
+    /** Indique si l'application est déjà présente dans le store local */
     isInstalled?: boolean;
+    /** Libellé du bouton d'action secondaire */
     actionLabel?: string;
+    /** Handler d'action secondaire */
     onAction?: () => void;
 }
 
+/**
+ * Composant de carte d'application standard affichant l'icône, le nom, la description et les badges de statut.
+ */
 export const AppCard = ({ app, category, onPress, onLongPress, isInstalled, actionLabel, onAction }: AppCardProps) => {
     const { theme, mode } = useTheme();
     const { isFavorite, toggleFavorite } = useFavorites();
@@ -43,7 +54,7 @@ export const AppCard = ({ app, category, onPress, onLongPress, isInstalled, acti
 
                     <View style={isFeatured ? styles.contentRowFeatured : styles.contentDefault}>
                         <View style={styles.headerRow}>
-                            {/* Icon Bubble */}
+                            {/* Bulle d'icône d'application */}
                             <View style={[
                                 styles.iconBubble,
                                 { backgroundColor: catColor + '15', borderColor: catColor + '30' },
@@ -60,7 +71,7 @@ export const AppCard = ({ app, category, onPress, onLongPress, isInstalled, acti
                                 )}
                             </View>
 
-                            {/* Top Right Badges & Favorite (Compact Icons Only) */}
+                            {/* Actions rapides haut-droite (Favori & statut réseau) */}
                             <View style={styles.topRightActions}>
                                 <TouchableOpacity
                                     onPress={() => toggleFavorite(app.id)}
@@ -86,7 +97,6 @@ export const AppCard = ({ app, category, onPress, onLongPress, isInstalled, acti
                                     />
                                 </TouchableOpacity>
 
-                                {/* Compact Offline/Online Icon Badge */}
                                 <View style={[
                                     styles.modeTag,
                                     isOfflineReady
@@ -102,7 +112,7 @@ export const AppCard = ({ app, category, onPress, onLongPress, isInstalled, acti
                             </View>
                         </View>
 
-                        {/* Text Content */}
+                        {/* Informations textuelles */}
                         <View style={styles.content}>
                             <View style={styles.titleRow}>
                                 <Text style={[styles.appName, { color: theme.text }]} numberOfLines={1}>{app.name}</Text>

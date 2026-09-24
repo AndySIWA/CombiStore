@@ -101,6 +101,11 @@ const SAMPLE_SPA_TEMPLATE = `<!DOCTYPE html>
 
 type TabSource = 'url' | 'html' | 'code';
 
+/**
+ * Écran / Modale de création et modification d'une Mini-App.
+ * Permet de saisir les détails d'une application (nom, catégorie, icône) et sa source
+ * (soit via une URL Web externe, soit par importation d'un fichier HTML, soit en collant du code HTML5).
+ */
 export default function ManageAppScreen() {
     const { id } = useLocalSearchParams<{ id?: string }>();
     const { apps, addApp, updateApp } = useApps();

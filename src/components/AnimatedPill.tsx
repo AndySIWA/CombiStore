@@ -10,15 +10,25 @@ import Animated, {
 import { FONT } from '../constants/theme';
 import { ANIMATIONS } from '../constants/animations';
 
+/** Propriétés de la pilule de catégorie animée */
 interface AnimatedPillProps {
+  /** Libellé de la catégorie */
   label: string;
+  /** Emoji ou nom de l'icône */
   icon: string;
+  /** Couleur active associée */
   color: string;
+  /** Indique si cette catégorie est actuellement sélectionnée */
   isActive: boolean;
+  /** Handler de sélection */
   onPress: () => void;
+  /** Délai d'apparition initiale en ms */
   delay?: number;
 }
 
+/**
+ * Composant de filtre sous forme de pilule animée pour le choix des catégories.
+ */
 export const AnimatedPill: React.FC<AnimatedPillProps> = ({
   label,
   icon,
@@ -32,7 +42,7 @@ export const AnimatedPill: React.FC<AnimatedPillProps> = ({
   const backgroundColor = useSharedValue(isActive ? 1 : 0);
 
   useEffect(() => {
-    // Entrance animation
+    // Animation d'entrée
     setTimeout(() => {
       opacity.value = withTiming(1, {
         duration: ANIMATIONS.durations.normal,
@@ -42,7 +52,7 @@ export const AnimatedPill: React.FC<AnimatedPillProps> = ({
   }, []);
 
   useEffect(() => {
-    // Active/inactive animation
+    // Transition d'état Actif / Inactif
     if (isActive) {
       scale.value = withSpring(1, ANIMATIONS.timingConfigs.spring);
       backgroundColor.value = withTiming(1, {

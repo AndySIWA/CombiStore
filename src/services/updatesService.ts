@@ -2,10 +2,12 @@ import * as Updates from 'expo-updates';
 import { Alert } from 'react-native';
 
 /**
- * Service gérant les mises à jour automatiques Over-The-Air (OTA) via expo-updates.
+ * Service gérant les mises à jour automatiques Over-The-Air (OTA) via `expo-updates`.
+ * Vérifie si une mise à jour du bundle JS est disponible sur le serveur EAS/Expo,
+ * la télécharge en arrière-plan et invite l'utilisateur à redémarrer l'application.
  */
 export async function checkForAppUpdates(): Promise<void> {
-    // Ne pas exécuter en mode développement local
+    // Les vérifications OTA sont désactivées en mode développement local (__DEV__)
     if (__DEV__) {
         return;
     }
@@ -27,7 +29,7 @@ export async function checkForAppUpdates(): Promise<void> {
                             try {
                                 await Updates.reloadAsync();
                             } catch (e) {
-                                console.error('Erreur lors du rechargement de l\'app:', e);
+                                console.error('Erreur lors du rechargement de l\'application :', e);
                             }
                         },
                     },
@@ -40,6 +42,6 @@ export async function checkForAppUpdates(): Promise<void> {
             );
         }
     } catch (error) {
-        console.log('Erreur lors de la vérification de la mise à jour OTA:', error);
+        console.log('Erreur lors de la vérification de la mise à jour OTA :', error);
     }
 }

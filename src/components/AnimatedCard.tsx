@@ -17,17 +17,29 @@ import { MiniApp, Category } from '../types';
 import { useTheme } from '../context/ThemeContext';
 import { useFavorites } from '../context/FavoritesContext';
 
+/** Propriétés du composant Carte d'Application Animée */
 interface AnimatedCardProps {
+  /** MiniApp affichée */
   app: MiniApp;
+  /** Catégorie associée (optionnel) */
   category?: Category;
+  /** Action au clic simple */
   onPress: () => void;
+  /** Action au clic prolongé (optionnel) */
   onLongPress?: () => void;
+  /** Indique si l'application est déjà installée */
   isInstalled?: boolean;
+  /** Libellé du bouton d'action secondaire (ex: "Installer") */
   actionLabel?: string;
+  /** Handler de l'action secondaire */
   onAction?: () => void;
+  /** Délai d'apparition de l'animation d'entrée (en ms) */
   delay?: number;
 }
 
+/**
+ * Composant de carte interactive avec animations d'entrée, de survol/pression et bouton favori.
+ */
 export const AnimatedCard: React.FC<AnimatedCardProps> = ({
   app,
   category,
@@ -44,7 +56,7 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
 
   const favorite = isFavorite(app.id);
 
-  // Animation values
+  // Valeurs partagées Reanimated
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(30);
   const scale = useSharedValue(0.95);
@@ -53,7 +65,7 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      // Entrance animation
+      // Animation d'entrée progressive
       opacity.value = withTiming(1, {
         duration: ANIMATIONS.durations.normal,
         easing: Easing.out(Easing.cubic),
@@ -90,7 +102,6 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
   const badgeColor = mode === 'dark' ? '#4B5563' : '#D1D5DB';
   const isOfflineReady = app.sourceType === 'html';
 
-  // Animated styles
   const containerAnimatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
     transform: [
@@ -125,7 +136,7 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
       >
         <Animated.View style={[styles.touch, pressAnimatedStyle]}>
           <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            {/* Glow effect layer */}
+            {/* Effet de lueur d'arrière-plan */}
             <View
               style={[
                 styles.glowLayer,
@@ -136,13 +147,12 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
               ]}
             />
 
-            {/* Glass highlight */}
+            {/* Reflet effet verre */}
             <View style={styles.glassHighlight} />
 
             <View style={styles.contentDefault}>
-              {/* Header row with Icon and Badges */}
+              {/* En-tête de carte avec icône et badges */}
               <View style={styles.headerRow}>
-                {/* Icon bubble with animation */}
                 <Animated.View
                   style={[
                     styles.iconBubble,
@@ -164,7 +174,7 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
                   )}
                 </Animated.View>
 
-                {/* Badges and Favorite Button (Compact Icon Only) */}
+                {/* Bouton favori et badge mode hors-ligne / en ligne */}
                 <View style={styles.topRightActions}>
                   <TouchableOpacity
                     onPress={handleFavoritePress}
@@ -192,7 +202,6 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
                     </Animated.View>
                   </TouchableOpacity>
 
-                  {/* Compact Offline/Online Icon Badge */}
                   <View style={[
                     styles.modeTag,
                     isOfflineReady
@@ -208,7 +217,7 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
                 </View>
               </View>
 
-              {/* Text content */}
+              {/* Contenu textuel */}
               <View style={styles.content}>
                 <View style={styles.titleRow}>
                   <Text style={[styles.appName, { color: theme.text }]} numberOfLines={1}>
@@ -226,7 +235,7 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
               </View>
             </View>
 
-            {/* Action button */}
+            {/* Bouton d'action optionnel */}
             {actionLabel && onAction && (
               <TouchableOpacity
                 onPress={onAction}

@@ -28,6 +28,11 @@ const ALL_CAT_ID = 'all';
 const FAVORITES_CAT_ID = 'favorites';
 const OFFLINE_CAT_ID = 'offline_filter';
 
+/**
+ * Écran principal "Explorer" (Catalogue des Mini-Apps).
+ * Permet de rechercher des applications, de les filtrer par catégorie ou favoris,
+ * d'importer des applications distantes Sanity CMS, et de basculer le thème ou le profil utilisateur.
+ */
 export default function StoreScreen() {
     const { apps, remoteApps, refreshingRemote, isOffline, fetchRemoteApps, importRemoteApp } = useApps();
     const { categories } = useCategories();

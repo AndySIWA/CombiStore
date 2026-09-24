@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, StyleSheet, View, Text } from 'react-native';
+import { TouchableOpacity, StyleSheet, Text } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -8,15 +8,25 @@ import Animated, {
 import { ANIMATIONS } from '../constants/animations';
 import { FONT } from '../constants/theme';
 
+/** Propriétés du bouton lumineux avec effet Glow */
 interface GlowButtonProps {
+  /** Libellé du bouton */
   label: string;
+  /** Action au clic */
   onPress: () => void;
+  /** Couleur principale du bouton et du halo */
   color?: string;
+  /** Taille du bouton (small, medium, large) */
   size?: 'small' | 'medium' | 'large';
+  /** État désactivé */
   disabled?: boolean;
+  /** Styles personnalisés */
   style?: any;
 }
 
+/**
+ * Bouton d'action principal avec effet de halo lumineux (glow) à l'appui.
+ */
 export const GlowButton: React.FC<GlowButtonProps> = ({
   label,
   onPress,

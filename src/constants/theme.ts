@@ -1,3 +1,6 @@
+/**
+ * Palette de couleurs pour le thème Clair (Light Mode).
+ */
 export const LIGHT_COLORS = {
     bg: '#F8FAFC',
     surface: 'rgba(0, 0, 0, 0.03)',
@@ -18,6 +21,9 @@ export const LIGHT_COLORS = {
     glassBorder: 'rgba(0, 0, 0, 0.05)',
 };
 
+/**
+ * Palette de couleurs pour le thème Sombre (Dark Mode).
+ */
 export const DARK_COLORS = {
     bg: '#16191E',
     surface: 'rgba(255, 255, 255, 0.08)',
@@ -38,10 +44,10 @@ export const DARK_COLORS = {
     glassBorder: 'rgba(255, 255, 255, 0.15)',
 };
 
-// Default (legacy) export to avoid breaking everything immediately
-// But we should use the dynamic one via context
+/** Palette par défaut */
 export const COLORS = DARK_COLORS;
 
+/** Dégradés de couleurs (Gradients) */
 export const GRADIENTS = {
     accent: ['#8B5CF6', '#3B82F6'] as const,
     card: ['rgba(255, 255, 255, 0.05)', 'rgba(255, 255, 255, 0.01)'] as const,
@@ -49,6 +55,7 @@ export const GRADIENTS = {
     bento: ['rgba(139, 92, 246, 0.1)', 'rgba(59, 130, 246, 0.05)'] as const,
 };
 
+/** Rayons de bordure (Border Radius) */
 export const RADII = {
     sm: 10,
     md: 16,
@@ -57,6 +64,7 @@ export const RADII = {
     full: 9999,
 };
 
+/** Marges et espacements (Spacing) */
 export const SPACING = {
     xs: 4,
     sm: 8,
@@ -66,6 +74,7 @@ export const SPACING = {
     xxl: 40,
 };
 
+/** Typographie (Google Fonts Inter) */
 export const FONT = {
     regular: 'Inter_400Regular',
     medium: 'Inter_500Medium',

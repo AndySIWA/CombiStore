@@ -5,14 +5,23 @@ import { DARK_COLORS, LIGHT_COLORS } from '../constants/theme';
 
 type ThemeMode = 'light' | 'dark';
 
+/**
+ * Interface définissant les données et méthodes du contexte de thème.
+ */
 interface ThemeContextType {
+    /** Palette de couleurs active */
     theme: typeof DARK_COLORS;
+    /** Mode de thème actuel ('light' ou 'dark') */
     mode: ThemeMode;
+    /** Bascule entre le mode Sombre et le mode Clair */
     toggleTheme: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+/**
+ * Provider gérant le thème de l'application (Sombre / Clair) avec détection du système et persistance AsyncStorage.
+ */
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const systemColorScheme = useColorScheme();
     const [mode, setMode] = useState<ThemeMode>(systemColorScheme === 'light' ? 'light' : 'dark');
@@ -27,6 +36,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         loadTheme();
     }, []);
 
+    /** Alterne entre le mode clair et sombre et sauvegarde la préférence */
     const toggleTheme = async () => {
         const newMode = mode === 'light' ? 'dark' : 'light';
         setMode(newMode);
@@ -42,10 +52,13 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     );
 };
 
+/**
+ * Hook personnalisé d'accès au thème graphique de l'application.
+ */
 export const useTheme = () => {
     const context = useContext(ThemeContext);
     if (!context) {
-        throw new Error('useTheme must be used within a ThemeProvider');
+        throw new Error("useTheme doit être utilisé à l'intérieur d'un ThemeProvider");
     }
     return context;
 };

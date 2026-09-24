@@ -1,5 +1,8 @@
 import {defineField, defineType} from 'sanity'
 
+/**
+ * Schéma Sanity CMS pour la publication et l'administration des Mini-Apps du catalogue.
+ */
 export default defineType({
   name: 'miniApp',
   title: 'Mini App',

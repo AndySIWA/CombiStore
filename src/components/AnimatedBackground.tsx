@@ -9,12 +9,19 @@ import Animated, {
 } from 'react-native-reanimated';
 import { ANIMATIONS } from '../constants/animations';
 
+/** Propriétés du composant d'arrière-plan animé */
 interface AnimatedBackgroundProps {
+  /** Couleurs de dégradé d'arrière-plan */
   colors: string[];
+  /** Éléments enfants contenus dans la vue */
   children?: React.ReactNode;
+  /** Activer ou désactiver l'animation de fond */
   animate?: boolean;
 }
 
+/**
+ * Composant d'arrière-plan avec dégradé subtil et éléments décoratifs animés.
+ */
 export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
   colors,
   children,
@@ -26,7 +33,7 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
   useEffect(() => {
     if (!animate) return;
 
-    // Animate gradient angles for subtle movement effect
+    // Animation continue des angles de dégradé
     const startLoop1 = () => {
       angle1.value = withTiming(360, {
         duration: ANIMATIONS.durations.verySlowbg,
@@ -53,10 +60,10 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Base background with animated color pulse */}
+      {/* Couleur de fond de base */}
       <Animated.View style={[styles.base, animatedStyle]} />
 
-      {/* Animated gradient overlay */}
+      {/* Superposition de dégradé linéaire */}
       <LinearGradient
         colors={[colors[0], colors[1]]}
         start={{ x: 0, y: 0 }}
@@ -64,11 +71,11 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
         style={styles.gradient}
       />
 
-      {/* Decorative animated circles */}
+      {/* Cercles lumineux décoratifs */}
       <View style={[styles.circle, styles.circle1, { backgroundColor: colors[0] + '15' }]} />
       <View style={[styles.circle, styles.circle2, { backgroundColor: colors[1] + '10' }]} />
 
-      {/* Content */}
+      {/* Contenu de la page */}
       {children}
     </View>
   );

@@ -1,5 +1,8 @@
 import { Category, MiniApp } from '../types';
 
+/**
+ * Catégories d'applications par défaut fournies si Sanity CMS est inaccessible ou lors du premier démarrage.
+ */
 export const DEFAULT_CATEGORIES: Category[] = [
     { id: 'all', name: 'Tout', color: '#7C3AED', icon: '🌐' },
     { id: 'games', name: 'Jeux', color: '#EF4444', icon: '🎮' },
@@ -9,12 +12,14 @@ export const DEFAULT_CATEGORIES: Category[] = [
     { id: 'entertainment', name: 'Divertissement', color: '#F59E0B', icon: '🎬' },
 ];
 
+/** Palette de couleurs disponibles pour la création de catégories */
 export const CATEGORY_COLORS = [
     '#7C3AED', '#EF4444', '#3B82F6', '#10B981',
     '#F59E0B', '#6366F1', '#EC4899', '#14B8A6',
     '#F97316', '#84CC16', '#06B6D4', '#8B5CF6',
 ];
 
+/** Icônes disponibles pour la personnalisation des catégories */
 export const CATEGORY_ICONS = [
     '🌐', '🎮', '🔧', '📚', '🎬', '⚡', '💡', '🎨',
     '📊', '🔬', '🎵', '🍅', '✏️', '🧩', '🚀', '💻',
@@ -22,8 +27,9 @@ export const CATEGORY_ICONS = [
 ];
 
 // ============================================================================
-// 100% OFFLINE-READY MINI APPS (HTML5 / CSS3 / JS PUR SANS DÉPENDANCE EXTERNE)
+// MINI-APPS INTÉGRÉES 100% AUTONOMES & HORS-LIGNE (HTML5 / CSS3 / JS)
 // ============================================================================
+
 
 const POMODORO_HTML = `<!DOCTYPE html>
 <html lang="fr">
@@ -1153,6 +1159,9 @@ const SKETCHPAD_HTML = `<!DOCTYPE html>
 </body>
 </html>`;
 
+/**
+ * Liste des Mini-Apps de démonstration autonomes et hors-ligne fournies par défaut lors du premier lancement.
+ */
 export const SAMPLE_APPS: MiniApp[] = [
     {
         id: 'sample_pomodoro',

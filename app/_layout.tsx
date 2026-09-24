@@ -10,17 +10,19 @@ import {
     Inter_600SemiBold,
     Inter_700Bold,
 } from '@expo-google-fonts/inter';
-import { COLORS } from '../src/constants/theme';
 import { ThemeProvider, useTheme } from '../src/context/ThemeContext';
 import { AuthProvider } from '../src/context/AuthContext';
 import { FavoritesProvider } from '../src/context/FavoritesContext';
 import { AppsProvider } from '../src/context/AppsContext';
 import { CategoriesProvider } from '../src/context/CategoriesContext';
-
 import { checkForAppUpdates } from '../src/services/updatesService';
 
+// Empêche le masquage automatique de l'écran de démarrage tant que les polices ne sont pas chargées
 SplashScreen.preventAutoHideAsync();
 
+/**
+ * Composant de navigation Stack principale de l'application.
+ */
 function StackLayout() {
     const { theme, mode } = useTheme();
 
@@ -53,6 +55,10 @@ function StackLayout() {
     );
 }
 
+/**
+ * Layout racine encapsulant tous les Providers de contexte d'état (Thème, Auth, Favoris, Apps, Catégories)
+ * et chargeant les polices d'écriture Google Fonts.
+ */
 export default function RootLayout() {
     const [fontsLoaded, fontError] = useFonts({
         Inter_400Regular,

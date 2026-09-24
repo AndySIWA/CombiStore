@@ -1,23 +1,29 @@
 import React, { useEffect } from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
   Easing,
-  interpolate,
-  Extrapolate,
 } from 'react-native-reanimated';
 import { FONT } from '../constants/theme';
 import { ANIMATIONS } from '../constants/animations';
 
+/** Propriétés de l'en-tête animé */
 interface AnimatedHeaderProps {
+  /** Titre principal */
   title: string;
+  /** Sous-titre optionnel */
   subtitle?: string;
+  /** Callback exécuté au démarrage de l'animation */
   onAnimationStart?: () => void;
+  /** Délai d'apparition en millisecondes */
   delay?: number;
 }
 
+/**
+ * En-tête de section avec animation fluide de fondu et de glissement d'entrée.
+ */
 export const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
   title,
   subtitle,

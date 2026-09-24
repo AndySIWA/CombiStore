@@ -7,11 +7,17 @@ import { client, getCategoriesQuery } from '../lib/sanity';
 const STORAGE_KEY = '@combistore_categories';
 const CUSTOM_CATEGORIES_KEY = '@combistore_custom_categories';
 
+/** Interface des méthodes et valeurs exposées par le contexte des catégories */
 interface CategoriesContextType {
+    /** Liste des catégories enregistrées */
     categories: Category[];
+    /** Indique si le chargement des catégories est en cours */
     loading: boolean;
+    /** Ajoute une catégorie personnalisée */
     addCategory: (cat: Omit<Category, 'id'>) => Promise<Category>;
+    /** Supprime une catégorie par son identifiant */
     removeCategory: (id: string) => Promise<void>;
+    /** Met à jour les propriétés d'une catégorie */
     updateCategory: (id: string, partial: Partial<Category>) => Promise<void>;
 }
 
@@ -25,6 +31,7 @@ type SanityCategory = {
     icon?: string;
 };
 
+/** Extrait l'identifiant normalisé d'une catégorie Sanity */
 const getSanityCategoryId = (cat: SanityCategory) => {
     let id: string | undefined;
     if (typeof cat.name === 'string') id = cat.name;
@@ -34,10 +41,14 @@ const getSanityCategoryId = (cat: SanityCategory) => {
     return id?.toLowerCase() || cat.id;
 };
 
+/**
+ * Provider gérant l'état des catégories (chargement initial local, mise à jour Sanity, et catégories personnalisées).
+ */
 export function CategoriesProvider({ children }: { children: ReactNode }) {
     const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
     const [loading, setLoading] = useState(true);
 
+    /** Charge les catégories depuis AsyncStorage et rafraîchit en arrière-plan depuis Sanity CMS */
     const loadCategories = useCallback(async () => {
         // 1. Charger immédiatement le cache local
         try {
@@ -60,7 +71,6 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
             const remoteCategories = await Promise.race([fetchPromise, timeoutPromise]);
 
             if (remoteCategories && Array.isArray(remoteCategories) && remoteCategories.length > 0) {
-                // Convertir les catégories Sanity au format local
                 const sanityCategories: Category[] = remoteCategories
                     .map(cat => ({
                         id: getSanityCategoryId(cat),
@@ -72,7 +82,6 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
                         Boolean(cat.id && cat.name && cat.color && cat.icon)
                     );
 
-                // Charger les catégories personnalisées locales
                 const customStored = await AsyncStorage.getItem(CUSTOM_CATEGORIES_KEY);
                 let customCategories: Category[] = [];
                 if (customStored) {
@@ -109,15 +118,16 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
     const saveCategories = async (cats: Category[]) => {
         try {
             if (!Array.isArray(cats)) {
-                console.error('[CategoriesContext] saveCategories called with non-array:', cats);
+                console.error('[CategoriesContext] saveCategories appelé avec un élément non-tableau :', cats);
                 return;
             }
             await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(cats));
         } catch (e) {
-            console.error('Error saving categories:', e);
+            console.error('Erreur de sauvegarde des catégories :', e);
         }
     };
 
+    /** Ajoute une catégorie personnalisée */
     const addCategory = useCallback(async (cat: Omit<Category, 'id'>) => {
         const newCat: Category = {
             ...cat,
@@ -129,7 +139,6 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
             return updated;
         });
 
-        // Sauvegarder dans les custom categories
         const stored = await AsyncStorage.getItem(CUSTOM_CATEGORIES_KEY);
         let customCats: Category[] = [];
         if (stored) {
@@ -144,6 +153,7 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
         return newCat;
     }, []);
 
+    /** Supprime une catégorie personnalisée */
     const removeCategory = useCallback(async (id: string) => {
         if (id === 'all') return;
         setCategories(prev => {
@@ -152,7 +162,6 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
             return updated;
         });
 
-        // Retirer des custom categories si présente
         const stored = await AsyncStorage.getItem(CUSTOM_CATEGORIES_KEY);
         if (stored) {
             const parsed = JSON.parse(stored);
@@ -163,6 +172,7 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
         }
     }, []);
 
+    /** Met à jour une catégorie */
     const updateCategory = useCallback(async (id: string, partial: Partial<Category>) => {
         setCategories(prev => {
             const updated = prev.map(c => c.id === id ? { ...c, ...partial } : c);
@@ -170,7 +180,6 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
             return updated;
         });
 
-        // Mettre à jour dans les custom categories si présente
         const stored = await AsyncStorage.getItem(CUSTOM_CATEGORIES_KEY);
         if (stored) {
             const parsed = JSON.parse(stored);
@@ -190,10 +199,13 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
     );
 }
 
+/**
+ * Hook d'accès aux catégories de l'application.
+ */
 export function useCategories() {
     const context = useContext(CategoriesContext);
     if (!context) {
-        throw new Error('useCategories must be used within a CategoriesProvider');
+        throw new Error("useCategories doit être utilisé à l'intérieur d'un CategoriesProvider");
     }
     return context;
 }

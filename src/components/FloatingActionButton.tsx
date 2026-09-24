@@ -8,14 +8,23 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 
+/** Propriétés du bouton d'action flottant (FAB) */
 interface FloatingActionButtonProps {
+  /** Icône ou emoji affiché */
   icon: string;
+  /** Action au clic */
   onPress: () => void;
+  /** Couleur principale du bouton */
   color?: string;
+  /** Position à l'écran */
   position?: 'bottom-right' | 'bottom-left' | 'center';
+  /** Activer ou non les animations d'entrée et de flottement */
   animated?: boolean;
 }
 
+/**
+ * Bouton d'action flottant animé (FAB) avec effet de lévitation subtil.
+ */
 export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
   icon,
   onPress,
@@ -32,13 +41,13 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
       return;
     }
 
-    // Entrance animation
+    // Animation d'entrée
     scale.value = withSpring(1, {
       damping: 8,
       stiffness: 100,
     });
 
-    // Float animation loop
+    // Boucle de flottement continu
     const startFloatLoop = () => {
       floatOffset.value = withTiming(15, {
         duration: 1000,

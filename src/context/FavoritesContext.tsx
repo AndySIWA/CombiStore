@@ -7,23 +7,36 @@ import { useAuth } from './AuthContext';
 
 const FAVORITES_STORAGE_KEY = '@combistore_favorites';
 
+/**
+ * Interface définissant les propriétés et méthodes du contexte des favoris.
+ */
 interface FavoritesContextType {
+    /** Liste des identifiants d'applications ajoutées aux favoris */
     favorites: string[];
+    /** Vérifie si une application spécifique est marquée comme favorite */
     isFavorite: (appId: string) => boolean;
+    /** Bascule l'état favori d'une application (avec retour haptique et sync cloud) */
     toggleFavorite: (appId: string) => Promise<void>;
+    /** Nombre total d'applications favorites */
     favoritesCount: number;
+    /** Indique si la synchronisation cloud Firestore est en cours */
     syncing: boolean;
+    /** Force la synchronisation de la liste locale des favoris avec Firestore */
     syncWithCloud: () => Promise<void>;
 }
 
 const FavoritesContext = createContext<FavoritesContextType | undefined>(undefined);
 
+/**
+ * Provider gérant les favoris de l'utilisateur avec persistance AsyncStorage
+ * et synchronisation cloud temps réel avec Firebase Firestore.
+ */
 export function FavoritesProvider({ children }: { children: ReactNode }) {
     const { user } = useAuth();
     const [favorites, setFavorites] = useState<string[]>([]);
     const [syncing, setSyncing] = useState(false);
 
-    // 1. Initial local load from AsyncStorage
+    // 1. Chargement initial des favoris enregistrés en local dans AsyncStorage
     useEffect(() => {
         const loadLocalFavorites = async () => {
             try {
@@ -35,14 +48,14 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
                     }
                 }
             } catch (err) {
-                console.error('[FavoritesContext] Error loading local favorites:', err);
+                console.error('[FavoritesContext] Erreur de chargement des favoris locaux :', err);
             }
         };
 
         loadLocalFavorites();
     }, []);
 
-    // 2. Sync with Cloud when user logs in or changes
+    // 2. Synchronisation Cloud lorsque l'utilisateur se connecte
     const syncWithCloud = useCallback(async () => {
         if (!user || !db || !isFirebaseConfigured) return;
 
@@ -62,17 +75,16 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
                 const cloudData = userDocSnap.data();
                 const cloudFavorites: string[] = Array.isArray(cloudData?.favorites) ? cloudData.favorites : [];
 
-                // Merge local & cloud favorites without duplicates
+                // Fusion sans doublons des favoris locaux et distants
                 const merged = Array.from(new Set([...currentLocal, ...cloudFavorites]));
                 setFavorites(merged);
                 await AsyncStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(merged));
 
-                // If merged contains local items not in cloud, update cloud
                 if (merged.length !== cloudFavorites.length) {
                     await setDoc(userDocRef, { favorites: merged, updatedAt: Date.now() }, { merge: true });
                 }
             } else {
-                // First cloud sync: push current local favorites to Firestore
+                // Premier sync cloud : pousser la liste locale sur Firestore
                 await setDoc(
                     userDocRef,
                     {
@@ -85,7 +97,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
                 );
             }
         } catch (err) {
-            console.error('[FavoritesContext] Cloud sync error:', err);
+            console.error('[FavoritesContext] Erreur de synchronisation cloud :', err);
         } finally {
             setSyncing(false);
         }
@@ -97,11 +109,11 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
         }
     }, [user?.uid]);
 
-    // 3. Toggle favorite
+    // 3. Basculer l'état favori d'une application (Ajout / Retrait)
     const toggleFavorite = useCallback(async (appId: string) => {
         if (!appId) return;
 
-        // Soft haptic feedback on action
+        // Effet haptique léger lors de l'action
         try {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         } catch (_) { }
@@ -112,16 +124,16 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
                 ? prevFavorites.filter(id => id !== appId)
                 : [...prevFavorites, appId];
 
-            // Defer side effects outside synchronous React state computation
+            // Exécution asynchrone des effets de bord hors du rendu React
             setTimeout(() => {
                 AsyncStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(updated)).catch(e => {
-                    console.error('[FavoritesContext] Error saving favorites to storage:', e);
+                    console.error('[FavoritesContext] Erreur lors de la sauvegarde des favoris :', e);
                 });
 
                 if (user && db && isFirebaseConfigured) {
                     const userDocRef = doc(db, 'users', user.uid);
                     setDoc(userDocRef, { favorites: updated, updatedAt: Date.now() }, { merge: true }).catch(e => {
-                        console.error('[FavoritesContext] Error updating favorites in cloud:', e);
+                        console.error('[FavoritesContext] Erreur lors de la mise à jour cloud des favoris :', e);
                     });
                 }
             }, 0);
@@ -150,10 +162,13 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     );
 }
 
+/**
+ * Hook personnalisé d'accès au contexte des favoris.
+ */
 export function useFavorites() {
     const context = useContext(FavoritesContext);
     if (!context) {
-        throw new Error('useFavorites must be used within a FavoritesProvider');
+        throw new Error("useFavorites doit être utilisé à l'intérieur d'un FavoritesProvider");
     }
     return context;
 }

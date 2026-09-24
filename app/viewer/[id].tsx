@@ -14,6 +14,11 @@ if (Platform.OS !== 'web') {
     WebView = require('react-native-webview').WebView;
 }
 
+/**
+ * Écran d'exécution / lecteur de Mini-App (WebView).
+ * Encapsule le moteur WebView pour charger les applications basées sur une URL externe
+ * ou pour injecter le code HTML/JS autonome en mode 100% hors-ligne.
+ */
 export default function ViewerScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const { apps, remoteApps } = useApps();

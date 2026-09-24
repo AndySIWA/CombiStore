@@ -1,5 +1,8 @@
 import {defineField, defineType} from 'sanity'
 
+/**
+ * Schéma Sanity CMS pour la gestion des Catégories d'applications.
+ */
 export default defineType({
   name: 'category',
   title: 'Catégorie',

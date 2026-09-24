@@ -22,29 +22,48 @@ if (Platform.OS !== 'web') {
         isSuccessResponse = nitroGoogle.isSuccessResponse;
         isNoSavedCredentialFoundResponse = nitroGoogle.isNoSavedCredentialFoundResponse;
     } catch (e) {
-        console.warn('[AuthContext] Could not load react-native-nitro-google-signin:', e);
+        console.warn('[AuthContext] Impossible de charger react-native-nitro-google-signin :', e);
     }
 }
 
+/**
+ * Représente le profil de l'utilisateur connecté dans l'application.
+ */
 export interface AppUser {
+    /** Identifiant unique (UID Firebase ou identifiant local) */
     uid: string;
+    /** Nom d'affichage de l'utilisateur */
     displayName: string | null;
+    /** Adresse email de l'utilisateur */
     email: string | null;
+    /** URL de l'image de profil / avatar */
     photoURL: string | null;
+    /** Indique si l'utilisateur est anonyme */
     isAnonymous: boolean;
 }
 
+/**
+ * Interface définissant l'état et les méthodes d'authentification.
+ */
 interface AuthContextType {
+    /** Utilisateur actuellement connecté ou null */
     user: AppUser | null;
+    /** Indique si l'initialisation ou la connexion est en cours */
     loading: boolean;
+    /** Indique si les identifiants Firebase sont valides */
     isConfigured: boolean;
+    /** Lance le processus de connexion via Google OAuth */
     signInWithGoogle: () => Promise<void>;
+    /** Déconnecte l'utilisateur actuel */
     signOut: () => Promise<void>;
 }
 
 const USER_STORAGE_KEY = '@combistore_user';
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+/**
+ * Provider gérant l'état d'authentification de l'utilisateur (Firebase & Google OAuth).
+ */
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<AppUser | null>(null);
     const [loading, setLoading] = useState(true);
@@ -60,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         offlineAccess: false,
                     });
                 } catch (err) {
-                    console.warn('[AuthContext] Nitro GoogleOneTapSignIn.configure error:', err);
+                    console.warn('[AuthContext] Erreur de configuration Nitro GoogleOneTapSignIn :', err);
                 }
             }
         }
@@ -98,7 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     setLoading(false);
                 }
             } catch (err) {
-                console.error('[AuthContext] Init error:', err);
+                console.error("[AuthContext] Erreur d'initialisation auth :", err);
                 setLoading(false);
             }
         };
@@ -110,43 +129,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
     }, []);
 
+    /** Déclenche la connexion via Google (Popup sur Web, Credential Manager sur Mobile) */
     const signInWithGoogle = useCallback(async () => {
         try {
             setLoading(true);
 
             if (Platform.OS === 'web') {
-                // Navigateur Web : Popup Firebase OAuth officiel
                 if (auth && isFirebaseConfigured) {
                     const provider = new GoogleAuthProvider();
                     provider.setCustomParameters({ prompt: 'select_account' });
                     await signInWithPopup(auth, provider);
                 }
             } else {
-                // Mobile Natif (Android / iOS) : Nitro One-Tap / Credential Manager
                 if (!GoogleOneTapSignIn) {
-                    console.warn('[AuthContext] GoogleOneTapSignIn module not loaded');
+                    console.warn("[AuthContext] Le module GoogleOneTapSignIn n'est pas disponible");
                     return;
                 }
 
-                // 1. Vérification des services Google Play
                 try {
                     await GoogleOneTapSignIn.checkPlayServices(true);
                 } catch (playErr) {
-                    console.warn('[AuthContext] Play Services check warning:', playErr);
+                    console.warn('[AuthContext] Avertissement Play Services :', playErr);
                 }
 
-                // 2. Présentation du sélecteur de compte natif
                 let response = await GoogleOneTapSignIn.presentExplicitSignIn().catch((err: any) => {
-                    console.warn('[AuthContext] presentExplicitSignIn error:', err);
+                    console.warn('[AuthContext] Erreur presentExplicitSignIn :', err);
                     return null;
                 });
 
-                // 3. Fallback si aucun identifiant sauvegardé
                 if (!response || (isNoSavedCredentialFoundResponse && isNoSavedCredentialFoundResponse(response))) {
                     response = await GoogleOneTapSignIn.createAccount().catch(() => null);
                 }
 
-                // 4. Fallback vers la méthode signIn classique
                 if (!response || (isSuccessResponse && !isSuccessResponse(response))) {
                     response = await GoogleOneTapSignIn.signIn().catch(() => null);
                 }
@@ -161,11 +175,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                             await signInWithCredential(auth, credential);
                             signedInWithFirebase = true;
                         } catch (fbErr) {
-                            console.warn('[AuthContext] Firebase signInWithCredential failed, using local user state:', fbErr);
+                            console.warn('[AuthContext] Firebase signInWithCredential a échoué, bascule en mode local :', fbErr);
                         }
                     }
 
-                    // Mode local / fallback si Firebase n'a pas mis à jour l'utilisateur
                     if (!signedInWithFirebase && googleUser) {
                         const appUser: AppUser = {
                             uid: googleUser.id || 'google_' + Date.now(),
@@ -178,21 +191,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(appUser));
                     }
                 } else {
-                    console.warn('[AuthContext] Google One-Tap response was not successful:', response);
+                    console.warn("[AuthContext] La réponse Google One-Tap n'est pas un succès :", response);
                 }
             }
         } catch (error: any) {
-            console.error('[AuthContext] Google Sign-In error:', error);
+            console.error('[AuthContext] Erreur Google Sign-In :', error);
         } finally {
             setLoading(false);
         }
     }, []);
 
+    /** Déconnecte l'utilisateur et détruit la session locale */
     const signOut = useCallback(async () => {
         try {
             setLoading(true);
 
-            if (Platform.OS !== 'web') {
+            if (Platform.OS !== 'web' && GoogleOneTapSignIn) {
                 await GoogleOneTapSignIn.signOut().catch(() => {});
             }
 
@@ -203,7 +217,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             await AsyncStorage.removeItem(USER_STORAGE_KEY);
             setUser(null);
         } catch (error) {
-            console.error('[AuthContext] SignOut error:', error);
+            console.error('[AuthContext] Erreur lors de la déconnexion :', error);
         } finally {
             setLoading(false);
         }
@@ -224,10 +238,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 }
 
+/**
+ * Hook personnalisé permettant d'accéder à l'état d'authentification utilisateur.
+ */
 export function useAuth() {
     const context = useContext(AuthContext);
     if (!context) {
-        throw new Error('useAuth must be used within an AuthProvider');
+        throw new Error("useAuth doit être utilisé à l'intérieur d'un AuthProvider");
     }
     return context;
 }

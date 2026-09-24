@@ -2,7 +2,8 @@ import { useSharedValue, useAnimatedStyle, withSpring, withTiming, Easing } from
 import { ANIMATIONS } from '../constants/animations';
 
 /**
- * Hook for scale animation on press
+ * Hook personnalisé pour animer le facteur d'échelle (scale) lors d'un appui (press-in / press-out).
+ * Utile pour les boutons dynamiques et cartes interactives.
  */
 export const useScaleAnimation = (initialScale = 1) => {
   const scale = useSharedValue(initialScale);
@@ -23,7 +24,7 @@ export const useScaleAnimation = (initialScale = 1) => {
 };
 
 /**
- * Hook for fade-in animation
+ * Hook personnalisé pour animer l'opacité (fondu d'apparition / fade-in).
  */
 export const useFadeInAnimation = (initialOpacity = 0) => {
   const opacity = useSharedValue(initialOpacity);
@@ -40,7 +41,7 @@ export const useFadeInAnimation = (initialOpacity = 0) => {
 };
 
 /**
- * Hook for slide animation
+ * Hook personnalisé pour une animation de glissement vertical (slide-in).
  */
 export const useSlideAnimation = (initialTranslate = 50) => {
   const translateY = useSharedValue(initialTranslate);
@@ -57,7 +58,7 @@ export const useSlideAnimation = (initialTranslate = 50) => {
 };
 
 /**
- * Hook for combined fade + slide animation (entrance effect)
+ * Hook personnalisé combinant apparition en fondu et glissement vertical (effet d'entrée d'élément).
  */
 export const useEntranceAnimation = () => {
   const opacity = useSharedValue(0);
@@ -82,7 +83,7 @@ export const useEntranceAnimation = () => {
 };
 
 /**
- * Hook for rotation animation
+ * Hook personnalisé pour une animation de rotation continue ou ponctuelle.
  */
 export const useRotationAnimation = (duration = 2000) => {
   const rotation = useSharedValue(0);
@@ -106,7 +107,7 @@ export const useRotationAnimation = (duration = 2000) => {
 };
 
 /**
- * Hook for pulse animation
+ * Hook personnalisé pour un effet de pulsation visuelle (agrandissement puis rétrécissement).
  */
 export const usePulseAnimation = (minScale = 1, maxScale = 1.1) => {
   const scale = useSharedValue(minScale);

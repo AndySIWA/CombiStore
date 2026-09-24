@@ -5,18 +5,21 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   Easing,
-  withDelay,
   interpolate,
   Extrapolate,
 } from 'react-native-reanimated';
 
+/** Propriétés de l'effet de brillance (Shimmer) */
 interface ShimmerProps {
-  width?: number;
+  width?: number | string;
   height?: number;
   borderRadius?: number;
   style?: any;
 }
 
+/**
+ * Composant de chargement avec effet de balayage lumineux (Shimmer / Skeleton loader).
+ */
 export const Shimmer: React.FC<ShimmerProps> = ({
   width = '100%',
   height = 100,
@@ -58,7 +61,7 @@ export const Shimmer: React.FC<ShimmerProps> = ({
   });
 
   return (
-    <View style={[styles.container, { width, height, borderRadius }, style]}>
+    <View style={[styles.container, { width: width as any, height, borderRadius }, style]}>
       <View style={[styles.baseShimmer, { borderRadius }]} />
       <Animated.View
         style={[
@@ -114,11 +117,14 @@ const styles = StyleSheet.create({
   },
 });
 
-// Skeleton loading card
+/** Propriétés de la carte squelette de chargement */
 interface SkeletonCardProps {
   delay?: number;
 }
 
+/**
+ * Carte d'application factice affichée pendant le chargement des données.
+ */
 export const SkeletonCard: React.FC<SkeletonCardProps> = ({ delay = 0 }) => {
   return (
     <View style={styles.skeletonCard}>
@@ -134,12 +140,15 @@ export const SkeletonCard: React.FC<SkeletonCardProps> = ({ delay = 0 }) => {
   );
 };
 
-// Loading spinner
+/** Propriétés de l’indicateur de chargement rotatif */
 interface LoadingSpinnerProps {
   size?: number;
   color?: string;
 }
 
+/**
+ * Indicateur de chargement en forme de cercle rotatif fluide.
+ */
 export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   size = 40,
   color = '#A78BFA',

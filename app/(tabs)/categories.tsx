@@ -12,6 +12,11 @@ import { CATEGORY_COLORS, CATEGORY_ICONS } from '../../src/constants/defaults';
 
 const ALL_CAT_ID = 'all';
 
+/**
+ * Écran de gestion et d'exploration des Catégories.
+ * Permet de visualiser l'ensemble des catégories d'applications, d'en ajouter de nouvelles,
+ * et d'éditer ou supprimer les catégories personnalisées.
+ */
 export default function CategoriesScreen() {
     const { categories, addCategory, removeCategory, updateCategory } = useCategories();
     const { theme, mode } = useTheme();

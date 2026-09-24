@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -8,14 +8,23 @@ import Animated, {
   Extrapolate,
 } from 'react-native-reanimated';
 
+/** Propriétés de l'en-tête à effet Parallaxe */
 interface ParallaxHeaderProps {
+  /** Valeur partagée de défilement Y */
   scrollY: any;
+  /** Éléments de l'en-tête */
   children: React.ReactNode;
+  /** Hauteur maximale de l'en-tête */
   parallaxHeight?: number;
+  /** Intensité du déplacement parallaxe */
   parallaxStrength?: number;
+  /** Couleur de fond */
   backgroundColor?: string;
 }
 
+/**
+ * Composant d'en-tête animée avec effet de décalage parallaxe lors du défilement.
+ */
 export const ParallaxHeader: React.FC<ParallaxHeaderProps> = ({
   scrollY,
   children,
@@ -64,12 +73,15 @@ const styles = StyleSheet.create({
   },
 });
 
-// FlatList with parallax scroll tracking
+/** Propriétés de la vue défilante avec suivi Parallaxe */
 interface ParallaxFlatListProps {
   children: React.ReactNode;
   onScroll?: (scrollY: number) => void;
 }
 
+/**
+ * Vue défilante ScrollView avec suivi des événements de défilement Reanimated.
+ */
 export const ParallaxScrollView: React.FC<ParallaxFlatListProps> = ({
   children,
   onScroll,

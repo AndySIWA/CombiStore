@@ -10,6 +10,9 @@ import { getFirestore, Firestore } from 'firebase/firestore';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+/**
+ * Configuration du projet Firebase lue depuis les variables d'environnement.
+ */
 const firebaseConfig = {
     apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || 'AIzaSyDemoKeyPlaceholderForCombiStore',
     authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || 'combistore-app.firebaseapp.com',
@@ -19,6 +22,9 @@ const firebaseConfig = {
     appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID || '1:1234567890:web:abcdef123456',
 };
 
+/**
+ * Indique si les variables d'environnement Firebase valides sont configurées.
+ */
 export const isFirebaseConfigured = Boolean(
     process.env.EXPO_PUBLIC_FIREBASE_API_KEY &&
     process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID
@@ -35,6 +41,7 @@ try {
             auth = getAuth(app);
         } else {
             try {
+                // Utilisation de la persistance AsyncStorage pour React Native (iOS / Android)
                 auth = initializeAuth(app, {
                     persistence: getReactNativePersistence(AsyncStorage),
                 });
@@ -48,7 +55,7 @@ try {
     }
     db = getFirestore(app);
 } catch (error) {
-    console.warn('[Firebase] Initialization warning:', error);
+    console.warn("[Firebase] Warning lors de l'initialisation :", error);
     // @ts-ignore
     app = getApps()[0] || null;
     // @ts-ignore
@@ -57,4 +64,9 @@ try {
     db = null;
 }
 
-export { app, auth, db };
+/** Instance Firebase App */
+export { app };
+/** Service d'Authentification Firebase Auth */
+export { auth };
+/** Base de données Cloud Firestore */
+export { db };

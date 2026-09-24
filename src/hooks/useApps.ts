@@ -1,4 +1,5 @@
 /**
- * Re-export useApps from AppsContext to ensure a single, unified source of truth.
+ * Export unifié du hook `useApps` depuis `AppsContext`.
+ * Permet d'accéder au catalogue d'applications locales et distantes.
  */
 export { useApps } from '../context/AppsContext';
