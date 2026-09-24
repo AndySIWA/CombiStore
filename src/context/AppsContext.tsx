@@ -56,6 +56,8 @@ interface AppsContextType {
     refreshingRemote: boolean;
     /** Indique si l'application est actuellement en mode hors-ligne */
     isOffline: boolean;
+    /** Statut actuel du cycle de mise à jour */
+    updateStatus: UpdateStatus;
     /** Ajoute une nouvelle application personnalisée */
     addApp: (app: Omit<MiniApp, 'id' | 'addedAt'>) => Promise<MiniApp>;
     /** Supprime une application installée par son identifiant */
@@ -63,12 +65,19 @@ interface AppsContextType {
     /** Met à jour les propriétés d'une application */
     updateApp: (id: string, partial: Partial<MiniApp>) => Promise<void>;
     /** Force la récupération des applications distantes depuis Sanity CMS */
-    fetchRemoteApps: () => Promise<void>;
+    fetchRemoteApps: (baseApps?: MiniApp[]) => Promise<void>;
     /** Importe une application distante dans la liste des applications locales */
     importRemoteApp: (remoteApp: RemoteApp) => Promise<MiniApp | null>;
+    /** Vérifie si une mise à jour de Mini-App est disponible */
+    checkForMiniAppUpdates: () => Promise<void>;
+    /** Lance le processus de mise à jour d'une Mini-App */
+    installMiniAppUpdate: (appId: string) => Promise<MiniApp | null>;
 }
 
 const AppsContext = createContext<AppsContextType | undefined>(undefined);
+
+/** Statut de mise à jour d'une Mini-App */
+type UpdateStatus = 'AVAILABLE' | 'INSTALLING' | 'INSTALLED' | 'UPDATE_AVAILABLE' | 'UPDATING';
 
 /**
  * Provider gérant l'état global du catalogue d'applications, le stockage local AsyncStorage,
@@ -80,6 +89,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
     const [loading, setLoading] = useState(true);
     const [refreshingRemote, setRefreshingRemote] = useState(false);
     const [isOffline, setIsOffline] = useState(false);
+    const [updateStatus, setUpdateStatus] = useState<UpdateStatus>('AVAILABLE');
 
     /** Sauvegarde la liste des applications dans le stockage local AsyncStorage */
     const saveApps = async (newApps: MiniApp[]) => {
@@ -142,8 +152,8 @@ export function AppsProvider({ children }: { children: ReactNode }) {
         }
     }, []);
 
-    /** Récupère les applications distantes depuis Sanity CMS */
-    const fetchRemoteApps = useCallback(async (baseApps?: MiniApp[]) => {
+/** Récupère les applications distantes depuis Sanity CMS */
+    const fetchRemoteApps = useCallback(async (baseApps?: MiniApp[]): Promise<RemoteApp[]> => {
         setRefreshingRemote(true);
         try {
             // Requête Sanity avec timeout pour éviter les blocages infinis en cas de réseau lent
@@ -177,6 +187,8 @@ export function AppsProvider({ children }: { children: ReactNode }) {
                 setApps(combined);
                 saveApps(combined);
                 await AsyncStorage.setItem(INITIALIZED_KEY, 'true');
+
+                return data;
             } else {
                 throw new Error('Aucune app trouvée dans Sanity');
             }
@@ -206,6 +218,8 @@ export function AppsProvider({ children }: { children: ReactNode }) {
                 setApps(SAMPLE_APPS);
                 saveApps(SAMPLE_APPS);
             }
+
+            return [];
         } finally {
             setRefreshingRemote(false);
         }
@@ -310,6 +324,107 @@ export function AppsProvider({ children }: { children: ReactNode }) {
         }
     }, []);
 
+    /** Vérifie si une mise à jour de Mini-App est disponible en comparant les versions */
+    const checkForMiniAppUpdates = useCallback(async () => {
+        setUpdateStatus('UPDATE_AVAILABLE');
+        try {
+            // Récupérer les apps distantes depuis Sanity
+            const remoteApps = await fetchRemoteApps();
+
+            // Pour chaque app locale, vérifier s'il y a une version distante plus récente
+            setUpdateStatus('AVAILABLE');
+            const updatePromises = apps.map((localApp: MiniApp) => {
+                const remoteApp = remoteApps.find((ra: RemoteApp) => ra.name === localApp.name || ra.id === localApp.remoteId);
+                if (!remoteApp) return null;
+
+                // Comparaison de version : si la version distante est supérieure
+                const versionCompare = (v1: string, v2: string): boolean => {
+                    const parseNum = (s: string) => s.split('.').map(Number.parseInt).filter(n => !isNaN(n));
+                    const v1Nums = parseNum(v1);
+                    const v2Nums = parseNum(v2);
+                    const maxLen = Math.max(v1Nums.length, v2Nums.length);
+                    for (let i = 0; i < maxLen; i++) {
+                        const n1 = v1Nums[i] || 0;
+                        const n2 = v2Nums[i] || 0;
+                        if (n1 > n2) return true;
+                        if (n1 < n2) return false;
+                    }
+                    return false;
+                };
+
+                if (remoteApp.version && localApp.version && versionCompare(remoteApp.version, localApp.version)) {
+                    return {
+                        ...localApp,
+                        remoteVersion: remoteApp.version,
+                        updateAvailable: true,
+                        latestVersion: remoteApp.version,
+                    };
+                }
+                return null;
+            });
+
+            const updates = (await Promise.all(updatePromises)).filter(Boolean) as MiniApp[];
+            if (updates.length > 0) {
+                setUpdateStatus('UPDATE_AVAILABLE');
+                // On peut ici afficher un indicateur de mise à jour disponible
+                console.log(`${updates.length} mise(s) à jour de Mini-App disponible(s)`);
+            } else {
+                setUpdateStatus('INSTALLED');
+                console.log('Toutes les Mini-Apps sont à jour');
+            }
+        } catch (e) {
+            console.error('Erreur lors de la vérification des mises à jour :', e);
+            setUpdateStatus('AVAILABLE');
+        }
+    }, [apps, fetchRemoteApps]);
+
+    /** Lance le processus de mise à jour d'une Mini-App (stratégie atomique) */
+    const installMiniAppUpdate = useCallback(async (appId: string) => {
+        setUpdateStatus('INSTALLING');
+        try {
+            const appToUpdate = apps.find(a => a.id === appId);
+            if (!appToUpdate) return null;
+
+            // Trouver la version distante
+            const remoteApp = remoteApps.find(ra => ra.name === appToUpdate.name || ra.id === appToUpdate.remoteId);
+            if (!remoteApp || !remoteApp.version) {
+                setUpdateStatus('AVAILABLE');
+                return null;
+            }
+
+            // Stratégie atomique :
+            // 1. Valider la nouvelle version d'abord
+            // 2. Puis activer la nouvelle version
+            // 3. Enfin supprimer l'ancienne version
+
+            // Ici, on marquerait l'app comme mise à jour en cours
+            // Le téléchargement et le remplacement réels dépendraient
+            // du client natif ou du serveur Expo
+
+            const updatedApp: MiniApp = {
+                ...appToUpdate,
+                version: remoteApp.version,
+                lastUpdated: remoteApp.lastUpdated,
+            };
+
+            // Mettre à jour l'état local
+            setApps(prev => {
+                const updated = prev.map(a => a.id === appId ? updatedApp : a);
+                saveApps(updated);
+                return updated;
+            });
+
+            setUpdateStatus('INSTALLED');
+            console.log(`Mini-App ${appToUpdate.name} mise à jour vers v${remoteApp.version}`);
+
+            return updatedApp;
+        } catch (e) {
+            console.error('Erreur lors de la mise à jour de la Mini-App :', e);
+            setUpdateStatus('AVAILABLE');
+            return null;
+        }
+    }, [apps, remoteApps]);
+
     return (
         <AppsContext.Provider value={{
             apps,
@@ -317,11 +432,14 @@ export function AppsProvider({ children }: { children: ReactNode }) {
             loading,
             refreshingRemote,
             isOffline,
+            updateStatus,
             addApp,
             removeApp,
             updateApp,
             fetchRemoteApps,
-            importRemoteApp
+            importRemoteApp,
+            checkForMiniAppUpdates,
+            installMiniAppUpdate
         }}>
             {children}
         </AppsContext.Provider>

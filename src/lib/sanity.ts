@@ -16,11 +16,11 @@ export const client = createClient({
  * Requête GROQ : Récupère la liste de toutes les Mini-Apps publiées sur Sanity CMS,
  * triées par date de dernière mise à jour descendante.
  */
-export const getRemoteAppsQuery = `*[_type == "miniApp" && coalesce(isPublished, true) == true] {
+export const getRemoteAppsQuery = `*[_type == "miniApp" && isPublished == true] {
   "id": _id,
   name,
   description,
-  "categoryId": lower(coalesce(category->name.current, category->name, category->title)),
+  "categoryId": lower(category->name),
   sourceType,
   source,
   "icon": coalesce(icon, "🌐"),
@@ -47,11 +47,11 @@ export const getCategoriesQuery = `*[_type == "category"] {
 /**
  * Requête GROQ : Récupère uniquement les Mini-Apps mises en avant ("featured").
  */
-export const getFeaturedAppsQuery = `*[_type == "miniApp" && coalesce(isPublished, true) == true && featured == true] {
+export const getFeaturedAppsQuery = `*[_type == "miniApp" && isPublished == true && featured == true] {
   "id": _id,
   name,
   description,
-  "categoryId": lower(coalesce(category->name.current, category->name, category->title)),
+  "categoryId": lower(category->name),
   sourceType,
   source,
   "icon": coalesce(icon, "🌐"),

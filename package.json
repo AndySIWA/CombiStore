@@ -17,7 +17,6 @@
     "@expo/metro-runtime": "~6.1.2",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@sanity/client": "^7.22.0",
-    "@supabase/supabase-js": "^2.112.4",
     "babel-preset-expo": "~54.0.10",
     "expo": "~54.0.35",
     "expo-auth-session": "~7.0.11",
@@ -51,7 +50,12 @@
     "react-native-worklets": "0.5.1"
   },
   "devDependencies": {
+    "@eslint/js": "^8.57.1",
     "@types/react": "~19.1.10",
+    "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "@typescript-eslint/parser": "^5.62.0",
+    "eslint": "^8.57.1",
+    "eslint-plugin-react": "^7.37.5",
     "typescript": "~5.9.2"
   },
   "private": true

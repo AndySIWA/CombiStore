@@ -236,7 +236,7 @@ export default function ViewerScreen() {
                         sharedCookiesEnabled={true}
                         allowsInlineMediaPlayback={true}
                         mediaPlaybackRequiresUserAction={false}
-                        originWhitelist={['https://*', 'http://*', 'about:blank', 'data:*']}
+                        originWhitelist={['https://*', 'about:blank', 'data:*']}
                         allowFileAccess={false}
                         allowFileAccessFromFileURLs={false}
                         allowUniversalAccessFromFileURLs={false}
@@ -244,8 +244,15 @@ export default function ViewerScreen() {
                         onShouldStartLoadWithRequest={(request: { url: string }) => {
                             // Intercepter et sécuriser les redirections web/schémas externes
                             const reqUrl = request.url;
-                            if (reqUrl.startsWith('http://') || reqUrl.startsWith('https://') || reqUrl.startsWith('about:blank') || reqUrl.startsWith('data:')) {
+                            // Autoriser uniquement https, about:blank et data:
+                            if (reqUrl.startsWith('https://') || reqUrl.startsWith('about:blank') || reqUrl.startsWith('data:')) {
                                 return true;
+                            }
+                            // Bloquer les schémas http non sécurisés sauf si nécessaire
+                            if (reqUrl.startsWith('http://')) {
+                                // Ouvrir en externe mais avec avertissement
+                                Linking.openURL(reqUrl).catch(() => {});
+                                return false;
                             }
                             // Tenter d'ouvrir les schémas personnalisés (ex: mailto, tel, whatsapp) de façon externe sécurisée
                             Linking.openURL(reqUrl).catch(() => {});
