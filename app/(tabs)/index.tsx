@@ -172,9 +172,9 @@ export default function StoreScreen() {
                         </Animated.View>
                         <View style={styles.headerTitleWrap}>
                             <Text style={[styles.headerTitle, { color: theme.text }]} numberOfLines={1}>Explorer</Text>
-                            <Text style={[styles.headerSlogan, { color: theme.textSecondary }]} numberOfLines={1}>
+                            {/* <Text style={[styles.headerSlogan, { color: theme.textSecondary }]} numberOfLines={1}>
                                 {isOffline ? '⚡ Mode Hors-Ligne' : 'Nouveautés publiées'}
-                            </Text>
+                            </Text> */}
                         </View>
                     </TouchableOpacity>
 
@@ -258,14 +258,14 @@ export default function StoreScreen() {
                 </View>
 
                 {/* Offline banner notification if offline */}
-                {isOffline && (
+                {/* {isOffline && (
                     <View style={[styles.offlineBanner, { backgroundColor: theme.surface, borderColor: 'rgba(16, 185, 129, 0.3)' }]}>
                         <Text style={styles.offlineBannerIcon}>⚡</Text>
                         <Text style={[styles.offlineBannerText, { color: theme.textSecondary }]} numberOfLines={1}>
                             Mode hors-ligne : catalogue local
                         </Text>
                     </View>
-                )}
+                )} */}
             </LinearGradient>
 
             {/* Category pills with Favorites integration (Icon only for Favorites) */}
