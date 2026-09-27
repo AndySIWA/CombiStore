@@ -155,7 +155,7 @@ export default function ManageAppScreen() {
         setIsFetchingIcon(true);
         try {
             // Extract domain
-            let domain = cleanUrl.replace('https://', '').replace('http://', '').split('/')[0];
+            const domain = cleanUrl.replace('https://', '').replace('http://', '').split('/')[0];
             if (domain) {
                 const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
                 setIcon(faviconUrl);
@@ -210,7 +210,7 @@ export default function ManageAppScreen() {
             console.error('Erreur lors de la sélection du HTML:', e);
             Alert.alert(
                 'Erreur de lecture',
-                `Impossible de lire ce fichier.\n\nDétails : ${e instanceof Error ? e.message : 'Erreur inconnue'}`
+                `Impossible de lire ce fichier.\n\nDétails : ${e instanceof Error ? e.message : 'Erreur inconnue'}`,
             );
             // Reset en cas d'erreur
             setHtmlFileName('');
@@ -255,9 +255,9 @@ export default function ManageAppScreen() {
                         onPress: () => {
                             setHtmlContent(SAMPLE_SPA_TEMPLATE);
                             if (!name || name === 'Code source' || name === 'Fichier importé') setName('Ma Super SPA');
-                        }
-                    }
-                ]
+                        },
+                    },
+                ],
             );
         } else {
             setHtmlContent(SAMPLE_SPA_TEMPLATE);
@@ -405,7 +405,7 @@ export default function ManageAppScreen() {
                                     style={[
                                         styles.iconOption,
                                         { backgroundColor: theme.surface },
-                                        icon === ic && { backgroundColor: theme.accent + '22', borderColor: theme.accent }
+                                        icon === ic && { backgroundColor: theme.accent + '22', borderColor: theme.accent },
                                     ]}
                                 >
                                     <Text style={styles.iconText}>{ic}</Text>

@@ -59,12 +59,12 @@ export default function StoreScreen() {
                 logoScale.value = withRepeat(
                     withTiming(1.04, { duration: 2500, easing: Easing.inOut(Easing.ease) }),
                     -1,
-                    true
+                    true,
                 );
                 logoTranslateY.value = withRepeat(
                     withTiming(3, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
                     -1,
-                    true
+                    true,
                 );
             }
         });
@@ -73,7 +73,7 @@ export default function StoreScreen() {
     const handleLogoPress = () => {
         logoScale.value = withSequence(
             withTiming(1.25, { duration: 150, easing: Easing.out(Easing.ease) }),
-            withSpring(1, { damping: 8, stiffness: 100 })
+            withSpring(1, { damping: 8, stiffness: 100 }),
         );
         logoRotate.value = 0;
         logoRotate.value = withTiming(360, { duration: 550, easing: Easing.out(Easing.back()) }, (finished) => {
@@ -185,7 +185,7 @@ export default function StoreScreen() {
                                 onPress={() => setProfileModalVisible(true)}
                                 style={[
                                     styles.userAvatarBtn,
-                                    { borderColor: theme.accent + '60', backgroundColor: theme.surface }
+                                    { borderColor: theme.accent + '60', backgroundColor: theme.surface },
                                 ]}
                                 activeOpacity={0.7}
                             >
@@ -208,7 +208,7 @@ export default function StoreScreen() {
                                 disabled={authLoading}
                                 style={[
                                     styles.headerIconBtn,
-                                    { backgroundColor: theme.surface, borderColor: theme.border }
+                                    { backgroundColor: theme.surface, borderColor: theme.border },
                                 ]}
                                 activeOpacity={0.7}
                             >
@@ -217,7 +217,7 @@ export default function StoreScreen() {
                         )}
 
                         <TouchableOpacity
-                            onPress={fetchRemoteApps}
+                            onPress={() => fetchRemoteApps()}
                             disabled={refreshingRemote}
                             style={[styles.headerIconBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
                         >
@@ -279,7 +279,7 @@ export default function StoreScreen() {
                             id: FAVORITES_CAT_ID,
                             name: '',
                             icon: '❤️',
-                            color: '#f7d5b6ff'
+                            color: '#f7d5b6ff',
                         },
                         ...categories.filter(c => c.id !== ALL_CAT_ID),
                         { id: OFFLINE_CAT_ID, name: 'Hors-ligne', icon: '📴', color: '#10B981' },
@@ -454,7 +454,7 @@ export default function StoreScreen() {
                                 <Text
                                     style={[
                                         styles.modalBtnText,
-                                        { color: mode === 'dark' ? '#ff5d5dff' : '#c03434ff' }
+                                        { color: mode === 'dark' ? '#ff5d5dff' : '#c03434ff' },
                                     ]}
                                 >
                                     Se déconnecter

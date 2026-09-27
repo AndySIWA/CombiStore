@@ -90,7 +90,7 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
   const handleFavoritePress = () => {
     heartScale.value = withSequence(
       withTiming(1.35, { duration: 120, easing: Easing.out(Easing.ease) }),
-      withSpring(1, { damping: 8, stiffness: 120 })
+      withSpring(1, { damping: 8, stiffness: 120 }),
     );
     toggleFavorite(app.id);
   };
@@ -206,7 +206,7 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
                     styles.modeTag,
                     isOfflineReady
                       ? { backgroundColor: 'rgba(16, 185, 129, 0.12)', borderColor: 'rgba(16, 185, 129, 0.25)' }
-                      : { backgroundColor: 'rgba(59, 130, 246, 0.12)', borderColor: 'rgba(59, 130, 246, 0.25)' }
+                      : { backgroundColor: 'rgba(59, 130, 246, 0.12)', borderColor: 'rgba(59, 130, 246, 0.25)' },
                   ]}>
                     {isOfflineReady ? (
                       <FontAwesome6 name="bolt" size={10} color="#10B981" />

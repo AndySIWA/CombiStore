@@ -57,7 +57,7 @@ export function logError(error: Omit<AppError, 'id' | 'timestamp'>): string {
 
     console.error(
         `${severityNames[appError.severity]} ${appError.category}: ${appError.message}`,
-        appError.component ? { component: appError.component } : {}
+        appError.component ? { component: appError.component } : {},
     );
 
     return id;

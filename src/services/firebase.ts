@@ -30,7 +30,7 @@ export const isFirebaseConfigured = Boolean(
     firebaseConfig.apiKey &&
     firebaseConfig.authDomain &&
     firebaseConfig.projectId &&
-    firebaseConfig.appId
+    firebaseConfig.appId,
 );
 
 let app: FirebaseApp;
@@ -40,7 +40,7 @@ let db: Firestore;
 try {
     if (!isFirebaseConfigured) {
         console.warn(
-            '[Firebase] Configuration absente. Firebase est désactivé.'
+            '[Firebase] Configuration absente. Firebase est désactivé.',
         );
     } else {
         if (getApps().length === 0) {

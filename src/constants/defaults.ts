@@ -825,8 +825,8 @@ const NOTES_MARKDOWN_HTML = `<!DOCTYPE html>
         .replace(/^# (.*$)/gim, '<h1>$1</h1>')
         .replace(/^## (.*$)/gim, '<h2>$1</h2>')
         .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-        .replace(/\*\*(.*)\*\*/gim, '<b>$1</b>')
-        .replace(/\*(.*)\*/gim, '<i>$1</i>')
+        .replace(/**(.*)**/gim, '<b>$1</b>')
+        .replace(/*(.*)*/gim, '<i>$1</i>')
         .replace(/^- (.*$)/gim, '<li>$1</li>')
         .replace(new RegExp("\\x60([^\\x60]+)\\x60", "gim"), '<code>$1</code>')
         .replace(/\n/gim, '<br>');

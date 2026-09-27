@@ -32,9 +32,9 @@ export default function ManageAppsScreen() {
                 {
                     text: 'Supprimer',
                     style: 'destructive',
-                    onPress: () => removeApp(app.id)
+                    onPress: () => removeApp(app.id),
                 },
-            ]
+            ],
         );
     };
 

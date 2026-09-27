@@ -68,7 +68,7 @@ export default function InfoScreen() {
             linkedin: developer?.links?.linkedin || 'https://www.linkedin.com/in/andy-siwa-180283199/',
             email: developer?.links?.email || 'blendy03ing@gmail.com',
             portfolio: developer?.links?.portfolio || '',
-        }
+        },
     };
 
     let whatsappUrl = devData.links.whatsapp || '';
@@ -157,7 +157,7 @@ export default function InfoScreen() {
                         <View style={[styles.mainCard, {
                             backgroundColor: mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.85)',
                             borderColor: theme.border,
-                            borderWidth: 2.5
+                            borderWidth: 2.5,
                         }]}>
                             <Image
                                 source={require('../assets/Logo_CombiStore.png')}
@@ -197,7 +197,7 @@ export default function InfoScreen() {
                         <View style={[styles.mainCard, {
                             backgroundColor: mode === 'dark' ? 'rgba(50, 208, 182, 0.08)' : 'rgba(255,255,255,0.9)',
                             borderColor: theme.border,
-                            borderWidth: 2.5
+                            borderWidth: 2.5,
                         }]}>
                             <View style={[styles.profileImageContainer, { borderColor: theme.accent, borderWidth: 3 }]}>
                                 <Image

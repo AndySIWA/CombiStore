@@ -37,14 +37,14 @@ export const ParallaxHeader: React.FC<ParallaxHeaderProps> = ({
       scrollY.value,
       [0, parallaxHeight],
       [0, parallaxHeight * parallaxStrength],
-      Extrapolate.CLAMP
+      Extrapolate.CLAMP,
     );
 
     const opacity = interpolate(
       scrollY.value,
       [0, parallaxHeight],
       [1, 0.8],
-      Extrapolate.CLAMP
+      Extrapolate.CLAMP,
     );
 
     return {

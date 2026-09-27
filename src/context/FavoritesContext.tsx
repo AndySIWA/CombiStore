@@ -93,7 +93,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
                         email: user.email,
                         updatedAt: Date.now(),
                     },
-                    { merge: true }
+                    { merge: true },
                 );
             }
         } catch (err) {

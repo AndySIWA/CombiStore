@@ -19,7 +19,7 @@ const syncImportedApps = (localApps: MiniApp[] = [], remoteApps: RemoteApp[] = [
     const remoteById = new Map(
         safeRemoteApps
             .filter(app => app && typeof app.id === 'string')
-            .map(app => [app.id, app])
+            .map(app => [app.id, app]),
     );
 
     return safeLocalApps.map(localApp => {
@@ -27,7 +27,7 @@ const syncImportedApps = (localApps: MiniApp[] = [], remoteApps: RemoteApp[] = [
 
         const remoteApp = remoteById.get(localApp.remoteId);
         if (!remoteApp) return localApp;
-        alert("Du nouveau ici");
+
         return {
             ...localApp,
             name: remoteApp.name || localApp.name,
@@ -65,7 +65,7 @@ interface AppsContextType {
     /** Met à jour les propriétés d'une application */
     updateApp: (id: string, partial: Partial<MiniApp>) => Promise<void>;
     /** Force la récupération des applications distantes depuis Sanity CMS */
-    fetchRemoteApps: (baseApps?: MiniApp[]) => Promise<void>;
+    fetchRemoteApps: (baseApps?: MiniApp[]) => Promise<RemoteApp[]>;
     /** Importe une application distante dans la liste des applications locales */
     importRemoteApp: (remoteApp: RemoteApp) => Promise<MiniApp | null>;
     /** Vérifie si une mise à jour de Mini-App est disponible */
@@ -155,17 +155,19 @@ export function AppsProvider({ children }: { children: ReactNode }) {
 /** Récupère les applications distantes depuis Sanity CMS */
     const fetchRemoteApps = useCallback(async (baseApps?: MiniApp[]): Promise<RemoteApp[]> => {
         setRefreshingRemote(true);
+        let timeoutId: ReturnType<typeof setTimeout> | undefined;
         try {
             // Requête Sanity avec timeout pour éviter les blocages infinis en cas de réseau lent
             const data = await Promise.race([
                 client.fetch<RemoteApp[]>(getRemoteAppsQuery),
-                new Promise<never>((_, reject) =>
-                    setTimeout(() => reject(new Error('SANITY_TIMEOUT')), 15000)
-                ),
+                new Promise<never>((_, reject) => {
+                    timeoutId = setTimeout(() => reject(new Error('SANITY_TIMEOUT')), 15000);
+                }),
             ]);
             
-            console.log('[Sanity] remote apps:', data);
-            console.log('[Sanity] remote apps count:', Array.isArray(data) ? data.length : 'NOT_ARRAY');
+            if (__DEV__) {
+                console.log('[Sanity] remote apps count:', Array.isArray(data) ? data.length : 0);
+            }
             
             if (data && data.length > 0) {
                 setRemoteApps(data);
@@ -185,7 +187,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
                 // Synchroniser les apps déjà installées avec les métadonnées Sanity fraîches
                 const currentLocal = baseApps !== undefined ? baseApps : apps;
                 const importedApps = syncImportedApps(currentLocal, data);
-                console.log("Apps importées après synchronisation : " + importedApps.length + " miniApps");
+                // console.log("Apps importées après synchronisation : " + importedApps.length + " miniApps");
                 const combined = [...importedApps, ...customApps];
 
                 setApps(combined);
@@ -226,6 +228,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
 
             return [];
         } finally {
+            if (timeoutId !== undefined) clearTimeout(timeoutId);
             setRefreshingRemote(false);
         }
     }, [apps]);
@@ -322,7 +325,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
             const parsed = JSON.parse(stored);
             if (Array.isArray(parsed)) {
                 const updated = parsed.map((a: MiniApp) =>
-                    a.id === id ? { ...a, ...partial } : a
+                    a.id === id ? { ...a, ...partial } : a,
                 );
                 await AsyncStorage.setItem(CUSTOM_APPS_KEY, JSON.stringify(updated));
             }
@@ -448,7 +451,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
             fetchRemoteApps,
             importRemoteApp,
             checkForMiniAppUpdates,
-            installMiniAppUpdate
+            installMiniAppUpdate,
         }}>
             {children}
         </AppsContext.Provider>

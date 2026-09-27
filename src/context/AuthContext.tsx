@@ -114,12 +114,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         }
 
                         setLoading(false);
-                    }
+                    },
                 );
             } catch (err) {
                 console.error(
                     '[AuthContext] Erreur d\'initialisation auth :',
-                    err
+                    err,
                 );
 
                 setUser(null);
@@ -177,13 +177,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     
                     if (!auth || !isFirebaseConfigured) {
                         throw new Error(
-                            'Firebase Auth n\'est pas configuré. Connexion impossible.'
+                            'Firebase Auth n\'est pas configuré. Connexion impossible.',
                         );
                     }
 
                     if (!idToken) {
                         throw new Error(
-                            'Google n\'a pas fourni de token d\'authentification.'
+                            'Google n\'a pas fourni de token d\'authentification.',
                         );
                     }
 

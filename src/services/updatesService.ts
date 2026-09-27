@@ -38,7 +38,7 @@ export async function checkForAppUpdates(): Promise<void> {
                         style: 'cancel',
                     },
                 ],
-                { cancelable: true }
+                { cancelable: true },
             );
         }
     } catch (error) {

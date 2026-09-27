@@ -40,7 +40,7 @@ export const TabBarAnimated: React.FC<TabBarAnimatedProps> = ({
     const tabWidth = totalWidth / tabs.length;
     indicatorPosition.value = withSpring(
       activeIndex * tabWidth,
-      ANIMATIONS.timingConfigs.tabAnimation
+      ANIMATIONS.timingConfigs.tabAnimation,
     );
     setPrevIndex(activeIndex);
   }, [activeIndex]);

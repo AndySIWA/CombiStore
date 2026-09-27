@@ -68,7 +68,7 @@ export default function CategoriesScreen() {
             [
                 { text: 'Annuler', style: 'cancel' },
                 { text: 'Supprimer', style: 'destructive', onPress: () => removeCategory(cat.id) },
-            ]
+            ],
         );
     };
 
@@ -152,7 +152,7 @@ export default function CategoriesScreen() {
                                     style={[
                                         styles.iconOption,
                                         { backgroundColor: theme.surfaceDark },
-                                        selectedIcon === icon && { backgroundColor: theme.accent + '22', borderColor: theme.accent }
+                                        selectedIcon === icon && { backgroundColor: theme.accent + '22', borderColor: theme.accent },
                                     ]}
                                 >
                                     <Text style={styles.iconOptionText}>{icon}</Text>

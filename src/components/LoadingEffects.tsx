@@ -52,7 +52,7 @@ export const Shimmer: React.FC<ShimmerProps> = ({
       shimmerPosition.value,
       [-1, 1],
       [-width as number * 2, width as number * 2],
-      Extrapolate.CLAMP
+      Extrapolate.CLAMP,
     );
 
     return {

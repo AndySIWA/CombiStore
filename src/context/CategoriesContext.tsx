@@ -65,7 +65,7 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
         try {
             const fetchPromise = client.fetch<SanityCategory[]>(getCategoriesQuery);
             const timeoutPromise = new Promise<never>((_, reject) =>
-                setTimeout(() => reject(new Error('Sanity categories timeout')), 8000)
+                setTimeout(() => reject(new Error('Sanity categories timeout')), 8000),
             );
 
             const remoteCategories = await Promise.race([fetchPromise, timeoutPromise]);
@@ -79,7 +79,7 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
                         icon: cat.icon,
                     }))
                     .filter((cat): cat is Category =>
-                        Boolean(cat.id && cat.name && cat.color && cat.icon)
+                        Boolean(cat.id && cat.name && cat.color && cat.icon),
                     );
 
                 const customStored = await AsyncStorage.getItem(CUSTOM_CATEGORIES_KEY);
@@ -185,7 +185,7 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
             const parsed = JSON.parse(stored);
             if (Array.isArray(parsed)) {
                 const updated = parsed.map((c: Category) =>
-                    c.id === id ? { ...c, ...partial } : c
+                    c.id === id ? { ...c, ...partial } : c,
                 );
                 await AsyncStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(updated));
             }

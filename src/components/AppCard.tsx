@@ -58,7 +58,7 @@ export const AppCard = ({ app, category, onPress, onLongPress, isInstalled, acti
                             <View style={[
                                 styles.iconBubble,
                                 { backgroundColor: catColor + '15', borderColor: catColor + '30' },
-                                isFeatured && styles.iconBubbleFeatured
+                                isFeatured && styles.iconBubbleFeatured,
                             ]}>
                                 {isImageIcon ? (
                                     <Image
@@ -101,7 +101,7 @@ export const AppCard = ({ app, category, onPress, onLongPress, isInstalled, acti
                                     styles.modeTag,
                                     isOfflineReady
                                         ? { backgroundColor: 'rgba(16, 185, 129, 0.12)', borderColor: 'rgba(16, 185, 129, 0.25)' }
-                                        : { backgroundColor: 'rgba(59, 130, 246, 0.12)', borderColor: 'rgba(59, 130, 246, 0.25)' }
+                                        : { backgroundColor: 'rgba(59, 130, 246, 0.12)', borderColor: 'rgba(59, 130, 246, 0.25)' },
                                 ]}>
                                     {isOfflineReady ? (
                                         <FontAwesome6 name="bolt" size={10} color="#10B981" />

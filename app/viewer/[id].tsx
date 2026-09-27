@@ -33,7 +33,10 @@ export default function ViewerScreen() {
     const openExternal = async () => {
         if (!app || app.sourceType !== 'url') return;
         const url = app.source.trim();
-        if (!url) return;
+        
+        if (!url || !url.startsWith('https://')) {
+            return;
+        }
 
         if (Platform.OS === 'web' && typeof window !== 'undefined') {
             window.open(url, '_blank', 'noopener,noreferrer');
@@ -93,7 +96,7 @@ export default function ViewerScreen() {
                 <TouchableOpacity
                     style={[
                         styles.iconBtn,
-                        favorite && { backgroundColor: 'rgba(239, 68, 68, 0.2)', borderColor: 'rgba(239, 68, 68, 0.4)' }
+                        favorite && { backgroundColor: 'rgba(239, 68, 68, 0.2)', borderColor: 'rgba(239, 68, 68, 0.4)' },
                     ]}
                     onPress={() => toggleFavorite(app.id)}
                     activeOpacity={0.7}
@@ -236,25 +239,31 @@ export default function ViewerScreen() {
                         sharedCookiesEnabled={false}
                         allowsInlineMediaPlayback={true}
                         mediaPlaybackRequiresUserAction={false}
-                        originWhitelist={['https://*', 'about:blank', 'data:*']}
+                        originWhitelist={
+                            app.sourceType === 'html'
+                                ? ['https://*', 'about:blank', 'data:*']
+                                : ['https://*', 'about:blank']
+                        }
                         allowFileAccess={false}
                         allowFileAccessFromFileURLs={false}
                         allowUniversalAccessFromFileURLs={false}
                         scalesPageToFit={true}
                         onShouldStartLoadWithRequest={(request: { url: string }) => {
-                            // Intercepter et sécuriser les redirections web/schémas externes
                             const reqUrl = request.url;
-                            // Autoriser uniquement https, about:blank et data:
-                            if (reqUrl.startsWith('https://') || reqUrl.startsWith('about:blank') || reqUrl.startsWith('data:')) {
+
+                            if (
+                                reqUrl.startsWith('https://') ||
+                                reqUrl.startsWith('about:blank') ||
+                                reqUrl.startsWith('data:')
+                            ) {
                                 return true;
                             }
-                            // Bloquer les schémas http non sécurisés sauf si nécessaire
+
                             if (reqUrl.startsWith('http://')) {
-                                // Ouvrir en externe mais avec avertissement
                                 Linking.openURL(reqUrl).catch(() => {});
                                 return false;
                             }
-                            // Tenter d'ouvrir les schémas personnalisés (ex: mailto, tel, whatsapp) de façon externe sécurisée
+
                             Linking.openURL(reqUrl).catch(() => {});
                             return false;
                         }}
