@@ -16,7 +16,7 @@ export const client = createClient({
  * Requête GROQ : Récupère la liste de toutes les Mini-Apps publiées sur Sanity CMS,
  * triées par date de dernière mise à jour descendante.
  */
-export const getRemoteAppsQuery = `*[_type == "miniApp" && isPublished == true] {
+export const getRemoteAppsQuery = `*[_type == "miniApp"] {
   "id": _id,
   name,
   description,

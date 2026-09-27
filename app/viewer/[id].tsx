@@ -233,7 +233,7 @@ export default function ViewerScreen() {
                         domStorageEnabled={true}
                         cacheEnabled={true}
                         cacheMode="LOAD_CACHE_ELSE_NETWORK"
-                        sharedCookiesEnabled={true}
+                        sharedCookiesEnabled={false}
                         allowsInlineMediaPlayback={true}
                         mediaPlaybackRequiresUserAction={false}
                         originWhitelist={['https://*', 'about:blank', 'data:*']}

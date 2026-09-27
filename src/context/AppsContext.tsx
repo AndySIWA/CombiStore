@@ -27,7 +27,7 @@ const syncImportedApps = (localApps: MiniApp[] = [], remoteApps: RemoteApp[] = [
 
         const remoteApp = remoteById.get(localApp.remoteId);
         if (!remoteApp) return localApp;
-
+        alert("Du nouveau ici");
         return {
             ...localApp,
             name: remoteApp.name || localApp.name,
@@ -157,13 +157,16 @@ export function AppsProvider({ children }: { children: ReactNode }) {
         setRefreshingRemote(true);
         try {
             // Requête Sanity avec timeout pour éviter les blocages infinis en cas de réseau lent
-            const fetchPromise = client.fetch<RemoteApp[]>(getRemoteAppsQuery);
-            const timeoutPromise = new Promise<never>((_, reject) =>
-                setTimeout(() => reject(new Error('Sanity fetch timeout')), 8000)
-            );
-
-            const data = await Promise.race([fetchPromise, timeoutPromise]);
-
+            const data = await Promise.race([
+                client.fetch<RemoteApp[]>(getRemoteAppsQuery),
+                new Promise<never>((_, reject) =>
+                    setTimeout(() => reject(new Error('SANITY_TIMEOUT')), 15000)
+                ),
+            ]);
+            
+            console.log('[Sanity] remote apps:', data);
+            console.log('[Sanity] remote apps count:', Array.isArray(data) ? data.length : 'NOT_ARRAY');
+            
             if (data && data.length > 0) {
                 setRemoteApps(data);
                 saveRemoteAppsCache(data);
@@ -182,6 +185,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
                 // Synchroniser les apps déjà installées avec les métadonnées Sanity fraîches
                 const currentLocal = baseApps !== undefined ? baseApps : apps;
                 const importedApps = syncImportedApps(currentLocal, data);
+                console.log("Apps importées après synchronisation : " + importedApps.length + " miniApps");
                 const combined = [...importedApps, ...customApps];
 
                 setApps(combined);
@@ -193,6 +197,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
                 throw new Error('Aucune app trouvée dans Sanity');
             }
         } catch (e) {
+            console.error('[AppsContext] Sanity error:', e);
             console.warn('[AppsContext] Mode hors-ligne actif (Sanity inaccessible) :', e);
             setIsOffline(true);
 
@@ -324,6 +329,19 @@ export function AppsProvider({ children }: { children: ReactNode }) {
         }
     }, []);
 
+    const hasRemoteChanges = (localApp: MiniApp, remoteApp: RemoteApp): boolean => {
+        return (
+            localApp.name !== remoteApp.name ||
+            localApp.description !== remoteApp.description ||
+            localApp.categoryId !== remoteApp.categoryId ||
+            localApp.sourceType !== remoteApp.sourceType ||
+            localApp.source !== remoteApp.source ||
+            (localApp.icon || '').trim() !== (remoteApp.icon || '').trim() ||
+            localApp.version !== remoteApp.version ||
+            localApp.lastUpdated !== remoteApp.lastUpdated
+        );
+    };
+
     /** Vérifie si une mise à jour de Mini-App est disponible en comparant les versions */
     const checkForMiniAppUpdates = useCallback(async () => {
         setUpdateStatus('UPDATE_AVAILABLE');
@@ -337,22 +355,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
                 const remoteApp = remoteApps.find((ra: RemoteApp) => ra.name === localApp.name || ra.id === localApp.remoteId);
                 if (!remoteApp) return null;
 
-                // Comparaison de version : si la version distante est supérieure
-                const versionCompare = (v1: string, v2: string): boolean => {
-                    const parseNum = (s: string) => s.split('.').map(Number.parseInt).filter(n => !isNaN(n));
-                    const v1Nums = parseNum(v1);
-                    const v2Nums = parseNum(v2);
-                    const maxLen = Math.max(v1Nums.length, v2Nums.length);
-                    for (let i = 0; i < maxLen; i++) {
-                        const n1 = v1Nums[i] || 0;
-                        const n2 = v2Nums[i] || 0;
-                        if (n1 > n2) return true;
-                        if (n1 < n2) return false;
-                    }
-                    return false;
-                };
-
-                if (remoteApp.version && localApp.version && versionCompare(remoteApp.version, localApp.version)) {
+                if (hasRemoteChanges(localApp, remoteApp)) {
                     return {
                         ...localApp,
                         remoteVersion: remoteApp.version,
@@ -403,6 +406,12 @@ export function AppsProvider({ children }: { children: ReactNode }) {
 
             const updatedApp: MiniApp = {
                 ...appToUpdate,
+                name: remoteApp.name,
+                description: remoteApp.description,
+                categoryId: remoteApp.categoryId,
+                sourceType: remoteApp.sourceType,
+                source: remoteApp.source,
+                icon: remoteApp.icon?.trim() || '🌐',
                 version: remoteApp.version,
                 lastUpdated: remoteApp.lastUpdated,
             };

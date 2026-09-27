@@ -13,21 +13,24 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 /**
  * Configuration du projet Firebase lue depuis les variables d'environnement.
  */
+
 const firebaseConfig = {
-    apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || 'AIzaSyDemoKeyPlaceholderForCombiStore',
-    authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || 'combistore-app.firebaseapp.com',
-    projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || 'combistore-app',
-    storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET || 'combistore-app.appspot.com',
-    messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '1234567890',
-    appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID || '1:1234567890:web:abcdef123456',
+    apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
 };
 
 /**
  * Indique si les variables d'environnement Firebase valides sont configurées.
  */
 export const isFirebaseConfigured = Boolean(
-    process.env.EXPO_PUBLIC_FIREBASE_API_KEY &&
-    process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID
+    firebaseConfig.apiKey &&
+    firebaseConfig.authDomain &&
+    firebaseConfig.projectId &&
+    firebaseConfig.appId
 );
 
 let app: FirebaseApp;
@@ -35,29 +38,34 @@ let auth: Auth;
 let db: Firestore;
 
 try {
-    if (getApps().length === 0) {
-        app = initializeApp(firebaseConfig);
-        if (Platform.OS === 'web') {
-            auth = getAuth(app);
-        } else {
-            try {
-                // Utilisation de la persistance AsyncStorage pour React Native (iOS / Android)
-                auth = initializeAuth(app, {
-                    persistence: getReactNativePersistence(AsyncStorage),
-                });
-            } catch {
-                auth = getAuth(app);
-            }
-        }
+    if (!isFirebaseConfigured) {
+        console.warn(
+            '[Firebase] Configuration absente. Firebase est désactivé.'
+        );
     } else {
-        app = getApp();
-        auth = getAuth(app);
+        if (getApps().length === 0) {
+            app = initializeApp(firebaseConfig);
+            if (Platform.OS === 'web') {
+                auth = getAuth(app);
+            } else {
+                try {
+                    auth = initializeAuth(app, {
+                        persistence: getReactNativePersistence(AsyncStorage),
+                    });
+                } catch {
+                    auth = getAuth(app);
+                }
+            }
+        } else {
+            app = getApp();
+            auth = getAuth(app);
+        }
+        db = getFirestore(app);
     }
-    db = getFirestore(app);
 } catch (error) {
-    console.warn("[Firebase] Warning lors de l'initialisation :", error);
+    console.warn("[Firebase] Erreur lors de l'initialisation :", error);
     // @ts-ignore
-    app = getApps()[0] || null;
+    app = null;
     // @ts-ignore
     auth = null;
     // @ts-ignore

@@ -27,10 +27,10 @@ if (Platform.OS !== 'web') {
 }
 
 /**
- * Représente le profil de l'utilisateur connecté dans l'application.
+ * Représentation du profil de l'utilisateur connecté dans l'application.
  */
 export interface AppUser {
-    /** Identifiant unique (UID Firebase ou identifiant local) */
+    /** Identifiant unique Firebase */
     uid: string;
     /** Nom d'affichage de l'utilisateur */
     displayName: string | null;
@@ -58,7 +58,6 @@ interface AuthContextType {
     signOut: () => Promise<void>;
 }
 
-const USER_STORAGE_KEY = '@combistore_user';
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 /**
@@ -85,14 +84,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     }, []);
 
-    // Écoute de l'état d'authentification Firebase (ou fallback AsyncStorage)
+    // Écoute de l'état d'authentification Firebase
     useEffect(() => {
-        let unsubscribe: (() => void) | undefined;
+    let unsubscribe: (() => void) | undefined;
 
         const initAuth = async () => {
             try {
-                if (auth && isFirebaseConfigured) {
-                    unsubscribe = onAuthStateChanged(auth, (fbUser: FirebaseUser | null) => {
+                if (!auth || !isFirebaseConfigured) {
+                    setUser(null);
+                    setLoading(false);
+                    return;
+                }
+
+                unsubscribe = onAuthStateChanged(
+                    auth,
+                    (fbUser: FirebaseUser | null) => {
                         if (fbUser) {
                             const appUser: AppUser = {
                                 uid: fbUser.uid,
@@ -101,23 +107,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                                 photoURL: fbUser.photoURL,
                                 isAnonymous: fbUser.isAnonymous,
                             };
+
                             setUser(appUser);
-                            AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(appUser));
                         } else {
                             setUser(null);
-                            AsyncStorage.removeItem(USER_STORAGE_KEY);
                         }
+
                         setLoading(false);
-                    });
-                } else {
-                    const localUser = await AsyncStorage.getItem(USER_STORAGE_KEY);
-                    if (localUser) {
-                        setUser(JSON.parse(localUser));
                     }
-                    setLoading(false);
-                }
+                );
             } catch (err) {
-                console.error("[AuthContext] Erreur d'initialisation auth :", err);
+                console.error(
+                    '[AuthContext] Erreur d\'initialisation auth :',
+                    err
+                );
+
+                setUser(null);
                 setLoading(false);
             }
         };
@@ -125,7 +130,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         initAuth();
 
         return () => {
-            if (unsubscribe) unsubscribe();
+            if (unsubscribe) {
+                unsubscribe();
+            }
         };
     }, []);
 
@@ -167,29 +174,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
                 if (isSuccessResponse && isSuccessResponse(response) && response?.data) {
                     const { idToken, user: googleUser } = response.data;
-                    let signedInWithFirebase = false;
-
-                    if (auth && isFirebaseConfigured && idToken) {
-                        try {
-                            const credential = GoogleAuthProvider.credential(idToken);
-                            await signInWithCredential(auth, credential);
-                            signedInWithFirebase = true;
-                        } catch (fbErr) {
-                            console.warn('[AuthContext] Firebase signInWithCredential a échoué, bascule en mode local :', fbErr);
-                        }
+                    
+                    if (!auth || !isFirebaseConfigured) {
+                        throw new Error(
+                            'Firebase Auth n\'est pas configuré. Connexion impossible.'
+                        );
                     }
 
-                    if (!signedInWithFirebase && googleUser) {
-                        const appUser: AppUser = {
-                            uid: googleUser.id || 'google_' + Date.now(),
-                            displayName: googleUser.name || googleUser.givenName || googleUser.email || 'Utilisateur Google',
-                            email: googleUser.email || null,
-                            photoURL: googleUser.photo || null,
-                            isAnonymous: false,
-                        };
-                        setUser(appUser);
-                        await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(appUser));
+                    if (!idToken) {
+                        throw new Error(
+                            'Google n\'a pas fourni de token d\'authentification.'
+                        );
                     }
+
+                    const credential = GoogleAuthProvider.credential(idToken);
+
+                    await signInWithCredential(auth, credential);
+                    
                 } else {
                     console.warn("[AuthContext] La réponse Google One-Tap n'est pas un succès :", response);
                 }
@@ -214,7 +215,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 await firebaseSignOut(auth);
             }
 
-            await AsyncStorage.removeItem(USER_STORAGE_KEY);
+            if (auth && isFirebaseConfigured) {
+                await firebaseSignOut(auth);
+            }
             setUser(null);
         } catch (error) {
             console.error('[AuthContext] Erreur lors de la déconnexion :', error);
