@@ -234,8 +234,8 @@ export default function ViewerScreen() {
                         onError={() => { setLoading(false); setError(true); }}
                         javaScriptEnabled={true}
                         domStorageEnabled={true}
-                        cacheEnabled={true}
-                        cacheMode="LOAD_CACHE_ELSE_NETWORK"
+                        cacheEnabled={app.sourceType === 'html'}
+                        cacheMode={app.sourceType === 'url' ? 'LOAD_NO_CACHE' : 'LOAD_DEFAULT'}
                         sharedCookiesEnabled={false}
                         allowsInlineMediaPlayback={true}
                         mediaPlaybackRequiresUserAction={false}
@@ -252,10 +252,13 @@ export default function ViewerScreen() {
                             const reqUrl = request.url;
 
                             if (
-                                reqUrl.startsWith('https://') ||
                                 reqUrl.startsWith('about:blank') ||
-                                reqUrl.startsWith('data:')
+                                (app.sourceType === 'html' && reqUrl.startsWith('data:'))
                             ) {
+                                return true;
+                            }
+
+                            if (reqUrl.startsWith('https://')) {
                                 return true;
                             }
 

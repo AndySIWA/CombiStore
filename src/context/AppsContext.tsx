@@ -10,39 +10,6 @@ const INITIALIZED_KEY = '@combistore_initialized';
 const REMOTE_CACHE_KEY = '@combistore_remote_apps_cache';
 
 /**
- * Synchronise la liste des applications locales déjà importées avec les données fraîches du CMS distant Sanity.
- */
-const syncImportedApps = (localApps: MiniApp[] = [], remoteApps: RemoteApp[] = []) => {
-    const safeLocalApps = Array.isArray(localApps) ? localApps : [];
-    const safeRemoteApps = Array.isArray(remoteApps) ? remoteApps : [];
-
-    const remoteById = new Map(
-        safeRemoteApps
-            .filter(app => app && typeof app.id === 'string')
-            .map(app => [app.id, app]),
-    );
-
-    return safeLocalApps.map(localApp => {
-        if (!localApp || !localApp.remoteId) return localApp;
-
-        const remoteApp = remoteById.get(localApp.remoteId);
-        if (!remoteApp) return localApp;
-
-        return {
-            ...localApp,
-            name: remoteApp.name || localApp.name,
-            description: remoteApp.description || localApp.description,
-            categoryId: remoteApp.categoryId || localApp.categoryId,
-            sourceType: remoteApp.sourceType || localApp.sourceType,
-            source: remoteApp.source || localApp.source,
-            icon: remoteApp.icon?.trim() || localApp.icon,
-            version: remoteApp.version || localApp.version,
-            lastUpdated: remoteApp.lastUpdated || localApp.lastUpdated,
-        };
-    });
-};
-
-/**
  * Interface définissant les propriétés et méthodes fournies par le contexte des applications.
  */
 interface AppsContextType {
@@ -152,6 +119,64 @@ export function AppsProvider({ children }: { children: ReactNode }) {
         }
     }, []);
 
+
+    const hasRemoteChanges = (localApp: MiniApp, remoteApp: RemoteApp): boolean => {
+        return (
+            localApp.name !== remoteApp.name ||
+            localApp.description !== remoteApp.description ||
+            localApp.categoryId !== remoteApp.categoryId ||
+            localApp.sourceType !== remoteApp.sourceType ||
+            localApp.source !== remoteApp.source ||
+            (localApp.icon || '').trim() !== (remoteApp.icon || '').trim() ||
+            localApp.version !== remoteApp.version ||
+            localApp.lastUpdated !== remoteApp.lastUpdated
+        );
+    };
+
+    const autoUpdateInstalledApps = async (
+        localApps: MiniApp[],
+        remoteApps: RemoteApp[],
+    ): Promise<MiniApp[]> => {
+        let hasUpdates = false;
+
+        const updatedApps = localApps.map(localApp => {
+            if (!localApp.remoteId) {
+                return localApp;
+            }
+
+            const remoteApp = remoteApps.find(
+                app => app.id === localApp.remoteId,
+            );
+
+            if (!remoteApp || !hasRemoteChanges(localApp, remoteApp)) {
+                return localApp;
+            }
+
+            hasUpdates = true;
+
+            return {
+                ...localApp,
+                name: remoteApp.name,
+                description: remoteApp.description,
+                categoryId: remoteApp.categoryId,
+                sourceType: remoteApp.sourceType,
+                source: remoteApp.source,
+                icon: remoteApp.icon?.trim() || localApp.icon,
+                version: remoteApp.version,
+                lastUpdated: remoteApp.lastUpdated,
+                updateAvailable: false,
+                remoteVersion: undefined,
+                latestVersion: undefined,
+            };
+        });
+
+        if (hasUpdates) {
+            await saveApps(updatedApps);
+        }
+
+        return updatedApps;
+    };
+
 /** Récupère les applications distantes depuis Sanity CMS */
     const fetchRemoteApps = useCallback(async (baseApps?: MiniApp[]): Promise<RemoteApp[]> => {
         setRefreshingRemote(true);
@@ -174,27 +199,10 @@ export function AppsProvider({ children }: { children: ReactNode }) {
                 saveRemoteAppsCache(data);
                 setIsOffline(false);
 
-                // Charger les apps personnalisées créées par l'utilisateur
-                const customStored = await AsyncStorage.getItem(CUSTOM_APPS_KEY);
-                let customApps: MiniApp[] = [];
-                if (customStored) {
-                    const parsed = JSON.parse(customStored);
-                    if (Array.isArray(parsed)) {
-                        customApps = parsed;
-                    }
-                }
-
-                // Synchroniser les apps déjà installées avec les métadonnées Sanity fraîches
-                const currentLocal = baseApps !== undefined ? baseApps : apps;
-                const importedApps = syncImportedApps(currentLocal, data);
-                // console.log("Apps importées après synchronisation : " + importedApps.length + " miniApps");
-                const combined = [...importedApps, ...customApps];
-
-                setApps(combined);
-                saveApps(combined);
                 await AsyncStorage.setItem(INITIALIZED_KEY, 'true');
 
                 return data;
+
             } else {
                 throw new Error('Aucune app trouvée dans Sanity');
             }
@@ -236,11 +244,21 @@ export function AppsProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         const initializeApps = async () => {
             const loadedApps = await loadApps();
-            await fetchRemoteApps(loadedApps);
+
+            const remote = await fetchRemoteApps(loadedApps);
+
+            if (remote.length > 0 && loadedApps.length > 0) {
+                const updatedApps = await autoUpdateInstalledApps(
+                    loadedApps,
+                    remote,
+                );
+
+                setApps(updatedApps);
+            }
         };
 
         initializeApps();
-    }, [loadApps]);
+    }, [loadApps, fetchRemoteApps]);
 
     /** Ajoute une application personnalisée créée par l'utilisateur */
     const addApp = useCallback(async (app: Omit<MiniApp, 'id' | 'addedAt'>) => {
@@ -332,54 +350,36 @@ export function AppsProvider({ children }: { children: ReactNode }) {
         }
     }, []);
 
-    const hasRemoteChanges = (localApp: MiniApp, remoteApp: RemoteApp): boolean => {
-        return (
-            localApp.name !== remoteApp.name ||
-            localApp.description !== remoteApp.description ||
-            localApp.categoryId !== remoteApp.categoryId ||
-            localApp.sourceType !== remoteApp.sourceType ||
-            localApp.source !== remoteApp.source ||
-            (localApp.icon || '').trim() !== (remoteApp.icon || '').trim() ||
-            localApp.version !== remoteApp.version ||
-            localApp.lastUpdated !== remoteApp.lastUpdated
-        );
-    };
-
     /** Vérifie si une mise à jour de Mini-App est disponible en comparant les versions */
     const checkForMiniAppUpdates = useCallback(async () => {
-        setUpdateStatus('UPDATE_AVAILABLE');
+        setUpdateStatus('UPDATING');
+
         try {
-            // Récupérer les apps distantes depuis Sanity
+            // Récupérer la version actuelle du catalogue Sanity
             const remoteApps = await fetchRemoteApps();
 
-            // Pour chaque app locale, vérifier s'il y a une version distante plus récente
-            setUpdateStatus('AVAILABLE');
-            const updatePromises = apps.map((localApp: MiniApp) => {
-                const remoteApp = remoteApps.find((ra: RemoteApp) => ra.name === localApp.name || ra.id === localApp.remoteId);
-                if (!remoteApp) return null;
-
-                if (hasRemoteChanges(localApp, remoteApp)) {
-                    return {
-                        ...localApp,
-                        remoteVersion: remoteApp.version,
-                        updateAvailable: true,
-                        latestVersion: remoteApp.version,
-                    };
-                }
-                return null;
-            });
-
-            const updates = (await Promise.all(updatePromises)).filter(Boolean) as MiniApp[];
-            if (updates.length > 0) {
-                setUpdateStatus('UPDATE_AVAILABLE');
-                // On peut ici afficher un indicateur de mise à jour disponible
-                console.log(`${updates.length} mise(s) à jour de Mini-App disponible(s)`);
-            } else {
-                setUpdateStatus('INSTALLED');
-                console.log('Toutes les Mini-Apps sont à jour');
+            if (!remoteApps.length) {
+                setUpdateStatus('AVAILABLE');
+                return;
             }
+
+            // Utiliser les apps locales actuelles
+            const currentApps = apps;
+
+            // Appliquer automatiquement les modifications distantes
+            const updatedApps = await autoUpdateInstalledApps(
+                currentApps,
+                remoteApps,
+            );
+
+            setApps(updatedApps);
+
+            setUpdateStatus('INSTALLED');
         } catch (e) {
-            console.error('Erreur lors de la vérification des mises à jour :', e);
+            console.error(
+                '[AppsContext] Erreur lors de la M-A-J automatique :',
+                e,
+            );
             setUpdateStatus('AVAILABLE');
         }
     }, [apps, fetchRemoteApps]);
@@ -427,7 +427,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
             });
 
             setUpdateStatus('INSTALLED');
-            console.log(`Mini-App ${appToUpdate.name} mise à jour vers v${remoteApp.version}`);
+            // console.log(`Mini-App ${appToUpdate.name} mise à jour vers v${remoteApp.version}`);
 
             return updatedApp;
         } catch (e) {
