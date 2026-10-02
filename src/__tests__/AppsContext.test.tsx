@@ -253,23 +253,51 @@ describe('AppsContext', () => {
         expect(getCtx().apps.filter(a => a.remoteId === 'remote_1')).toHaveLength(1);
     });
 
-    test('checkForMiniAppUpdates : détecte une version distante plus récente', async () => {
-        // App manuelle (pas de remoteId) : la synchro au montage ne la met pas
-        // à jour, seul le matching par nom s'applique.
-        await seedStorage({ [STORAGE_KEY]: [localManualApp] });
+    test('checkForMiniAppUpdates : applique automatiquement une version distante plus récente', async () => {
+        // App locale sans remoteId :
+        // le matching par nom permet de retrouver l'app distante.
+        await seedStorage({
+            [STORAGE_KEY]: [localManualApp],
+        });
+
         fetchMock.mockResolvedValue([remoteSameNameNewer]);
 
         renderProvider();
+
+        // Attendre que le catalogue distant soit chargé.
         await waitFor(() => expect(getCtx().remoteApps).toHaveLength(1));
 
-        // État stable : app locale inchangée par le fetch du montage.
+        // Au démarrage, l'app n'a pas de remoteId :
+        // elle ne doit donc pas être auto-mise à jour par le premier chargement.
         expect(getCtx().apps[0].version).toBe('1.0.0');
 
         await act(async () => {
             await getCtx().checkForMiniAppUpdates();
         });
 
-        expect(getCtx().updateStatus).toBe('UPDATE_AVAILABLE');
+        // La nouvelle logique applique directement la mise à jour.
+        expect(getCtx().updateStatus).toBe('INSTALLED');
+
+        const updated = getCtx().apps.find(
+            a => a.id === localManualApp.id,
+        );
+
+        expect(updated).toBeDefined();
+        expect(updated?.version).toBe(remoteSameNameNewer.version);
+        expect(updated?.name).toBe(remoteSameNameNewer.name);
+        expect(updated?.description).toBe(remoteSameNameNewer.description);
+        expect(updated?.source).toBe(remoteSameNameNewer.source);
+        expect(updated?.lastUpdated).toBe(remoteSameNameNewer.lastUpdated);
+
+        // Vérifier que la nouvelle version est bien persistée.
+        const storedApps = await readStored<MiniApp[]>(STORAGE_KEY);
+
+        const storedUpdated = storedApps?.find(
+            a => a.id === localManualApp.id,
+        );
+
+        expect(storedUpdated?.version).toBe(remoteSameNameNewer.version);
+        expect(storedUpdated?.source).toBe(remoteSameNameNewer.source);
     });
 
     test('checkForMiniAppUpdates : pas de mise à jour quand la version locale est à jour', async () => {

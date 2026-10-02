@@ -35,7 +35,7 @@ interface AppsContextType {
     fetchRemoteApps: (baseApps?: MiniApp[]) => Promise<RemoteApp[]>;
     /** Importe une application distante dans la liste des applications locales */
     importRemoteApp: (remoteApp: RemoteApp) => Promise<MiniApp | null>;
-    /** Vérifie si une mise à jour de Mini-App est disponible */
+    /** Vérifie et applique automatiquement les mises à jour des Mini-Apps */
     checkForMiniAppUpdates: () => Promise<void>;
     /** Lance le processus de mise à jour d'une Mini-App */
     installMiniAppUpdate: (appId: string) => Promise<MiniApp | null>;
