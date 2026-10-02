@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { Platform } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
     onAuthStateChanged,
     signOut as firebaseSignOut,
@@ -173,7 +172,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 }
 
                 if (isSuccessResponse && isSuccessResponse(response) && response?.data) {
-                    const { idToken, user: googleUser } = response.data;
+                    const { idToken } = response.data;
                     
                     if (!auth || !isFirebaseConfigured) {
                         throw new Error(
@@ -208,11 +207,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setLoading(true);
 
             if (Platform.OS !== 'web' && GoogleOneTapSignIn) {
-                await GoogleOneTapSignIn.signOut().catch(() => {});
-            }
-
-            if (auth && isFirebaseConfigured) {
-                await firebaseSignOut(auth);
+                await GoogleOneTapSignIn.signOut().catch((err: unknown) => {
+                    console.warn('[AuthContext] Erreur déconnexion Google One-Tap :', err);
+                });
             }
 
             if (auth && isFirebaseConfigured) {

@@ -9,7 +9,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Clipboard from 'expo-clipboard';
-import { COLORS, RADII, SPACING, FONT, GRADIENTS } from '../src/constants/theme';
+import { COLORS, FONT, GRADIENTS } from '../src/constants/theme';
 import { useApps } from '../src/context/AppsContext';
 import { useCategories } from '../src/context/CategoriesContext';
 import { useTheme } from '../src/context/ThemeContext';

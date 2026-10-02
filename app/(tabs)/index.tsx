@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { COLORS, SPACING, FONT, GRADIENTS } from '../../src/constants/theme';
+import { COLORS, SPACING, FONT } from '../../src/constants/theme';
 import { useApps } from '../../src/context/AppsContext';
 import { useCategories } from '../../src/context/CategoriesContext';
 import { useTheme } from '../../src/context/ThemeContext';
@@ -34,7 +34,7 @@ const OFFLINE_CAT_ID = 'offline_filter';
  * d'importer des applications distantes Sanity CMS, et de basculer le thème ou le profil utilisateur.
  */
 export default function StoreScreen() {
-    const { apps, remoteApps, refreshingRemote, isOffline, fetchRemoteApps, importRemoteApp } = useApps();
+    const { apps, remoteApps, refreshingRemote, fetchRemoteApps, importRemoteApp } = useApps();
     const { categories } = useCategories();
     const { theme, mode, toggleTheme } = useTheme();
     const { user, signInWithGoogle, signOut, loading: authLoading } = useAuth();
@@ -123,15 +123,15 @@ export default function StoreScreen() {
         return apps.some(a => a.remoteId === app.id);
     };
 
-    const combinedApps = [
+    const combinedApps = React.useMemo(() => [
         ...apps,
         ...remoteApps.filter(remote => !apps.some(local => local.remoteId === remote.id)),
-    ];
+    ], [apps, remoteApps]);
 
-    const filtered = combinedApps.filter(app => {
+    const filtered = React.useMemo(() => combinedApps.filter(app => {
         let matchCat = true;
         if (activeCategory === FAVORITES_CAT_ID) {
-            matchCat = isFavorite(app.id);
+            matchCat = isFavorite(app.id, (app as MiniApp).remoteId);
         } else if (activeCategory === OFFLINE_CAT_ID) {
             matchCat = app.sourceType === 'html';
         } else if (activeCategory !== ALL_CAT_ID) {
@@ -142,7 +142,7 @@ export default function StoreScreen() {
             app.name.toLowerCase().includes(search.toLowerCase()) ||
             app.description.toLowerCase().includes(search.toLowerCase());
         return matchCat && matchSearch;
-    });
+    }), [combinedApps, activeCategory, search, isFavorite]);
 
     const getCategory = (id: string) => categories.find(c => c.id === id);
 

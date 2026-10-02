@@ -4,9 +4,10 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { FontAwesome6 } from '@expo/vector-icons';
-import { COLORS, FONT, RADII, SPACING } from '../../src/constants/theme';
+import { COLORS, FONT } from '../../src/constants/theme';
 import { useApps } from '../../src/context/AppsContext';
 import { useFavorites } from '../../src/context/FavoritesContext';
+import { MiniApp } from '../../src/types';
 
 // Platform-conditional import
 let WebView: any = null;
@@ -28,7 +29,8 @@ export default function ViewerScreen() {
     const [error, setError] = useState(false);
     const webViewRef = useRef<any>(null);
 
-    const favorite = app ? isFavorite(app.id) : false;
+    const appRemoteId = app && 'remoteId' in app ? (app as MiniApp).remoteId : undefined;
+    const favorite = app ? isFavorite(app.id, appRemoteId) : false;
 
     const openExternal = async () => {
         if (!app || app.sourceType !== 'url') return;
@@ -98,7 +100,7 @@ export default function ViewerScreen() {
                         styles.iconBtn,
                         favorite && { backgroundColor: 'rgba(239, 68, 68, 0.2)', borderColor: 'rgba(239, 68, 68, 0.4)' },
                     ]}
-                    onPress={() => toggleFavorite(app.id)}
+                    onPress={() => toggleFavorite(app.id, appRemoteId)}
                     activeOpacity={0.7}
                 >
                     <FontAwesome6
@@ -176,7 +178,7 @@ export default function ViewerScreen() {
                     title={app.name}
                     onLoad={() => setLoading(false)}
                     onError={() => { setLoading(false); setError(true); }}
-                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
+                    sandbox="allow-scripts allow-forms allow-popups allow-modals"
                 />
             </View>
         );
@@ -263,11 +265,15 @@ export default function ViewerScreen() {
                             }
 
                             if (reqUrl.startsWith('http://')) {
-                                Linking.openURL(reqUrl).catch(() => {});
+                                Linking.openURL(reqUrl).catch(err => {
+                                    console.warn('[Viewer] Erreur ouverture URL HTTP :', err);
+                                });
                                 return false;
                             }
 
-                            Linking.openURL(reqUrl).catch(() => {});
+                            Linking.openURL(reqUrl).catch(err => {
+                                console.warn('[Viewer] Erreur ouverture URL :', err);
+                            });
                             return false;
                         }}
                     />

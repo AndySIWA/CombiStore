@@ -125,7 +125,7 @@ interface SkeletonCardProps {
 /**
  * Carte d'application factice affichée pendant le chargement des données.
  */
-export const SkeletonCard: React.FC<SkeletonCardProps> = ({ delay = 0 }) => {
+export const SkeletonCard: React.FC<SkeletonCardProps> = () => {
   return (
     <View style={styles.skeletonCard}>
       <View style={styles.skeletonIcon}>

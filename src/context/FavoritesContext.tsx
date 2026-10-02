@@ -13,10 +13,10 @@ const FAVORITES_STORAGE_KEY = '@combistore_favorites';
 interface FavoritesContextType {
     /** Liste des identifiants d'applications ajoutées aux favoris */
     favorites: string[];
-    /** Vérifie si une application spécifique est marquée comme favorite */
-    isFavorite: (appId: string) => boolean;
+    /** Vérifie si une application spécifique est marquée comme favorite (par id local ou remoteId) */
+    isFavorite: (appId: string, remoteId?: string) => boolean;
     /** Bascule l'état favori d'une application (avec retour haptique et sync cloud) */
-    toggleFavorite: (appId: string) => Promise<void>;
+    toggleFavorite: (appId: string, remoteId?: string) => Promise<void>;
     /** Nombre total d'applications favorites */
     favoritesCount: number;
     /** Indique si la synchronisation cloud Firestore est en cours */
@@ -110,7 +110,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     }, [user?.uid]);
 
     // 3. Basculer l'état favori d'une application (Ajout / Retrait)
-    const toggleFavorite = useCallback(async (appId: string) => {
+    const toggleFavorite = useCallback(async (appId: string, remoteId?: string) => {
         if (!appId) return;
 
         // Effet haptique léger lors de l'action
@@ -118,32 +118,27 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         } catch (_) { }
 
-        setFavorites(prevFavorites => {
-            const exists = prevFavorites.includes(appId);
-            const updated = exists
-                ? prevFavorites.filter(id => id !== appId)
-                : [...prevFavorites, appId];
+        const isFav = favorites.includes(appId) || (Boolean(remoteId) && favorites.includes(remoteId as string));
+        const updated = isFav
+            ? favorites.filter(id => id !== appId && (!remoteId || id !== remoteId))
+            : [...favorites, appId];
 
-            // Exécution asynchrone des effets de bord hors du rendu React
-            setTimeout(() => {
-                AsyncStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(updated)).catch(e => {
-                    console.error('[FavoritesContext] Erreur lors de la sauvegarde des favoris :', e);
-                });
+        setFavorites(updated);
 
-                if (user && db && isFirebaseConfigured) {
-                    const userDocRef = doc(db, 'users', user.uid);
-                    setDoc(userDocRef, { favorites: updated, updatedAt: Date.now() }, { merge: true }).catch(e => {
-                        console.error('[FavoritesContext] Erreur lors de la mise à jour cloud des favoris :', e);
-                    });
-                }
-            }, 0);
+        try {
+            await AsyncStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(updated));
+            if (user && db && isFirebaseConfigured) {
+                const userDocRef = doc(db, 'users', user.uid);
+                await setDoc(userDocRef, { favorites: updated, updatedAt: Date.now() }, { merge: true });
+            }
+        } catch (e) {
+            console.error('[FavoritesContext] Erreur lors de la sauvegarde des favoris :', e);
+        }
+    }, [favorites, user]);
 
-            return updated;
-        });
-    }, [user]);
-
-    const isFavorite = useCallback((appId: string) => {
-        return favorites.includes(appId);
+    const isFavorite = useCallback((appId: string, remoteId?: string) => {
+        if (!appId && !remoteId) return false;
+        return favorites.includes(appId) || (Boolean(remoteId) && favorites.includes(remoteId as string));
     }, [favorites]);
 
     return (

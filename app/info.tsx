@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import {
     View, Text, StyleSheet, ScrollView, TouchableOpacity,
-    Image, Linking, Platform, Dimensions,
+    Image, Linking, Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { COLORS, SPACING, FONT, GRADIENTS, RADII } from '../src/constants/theme';
+import { FONT } from '../src/constants/theme';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { useTheme } from '../src/context/ThemeContext';
 import { client, getDeveloperQuery } from '../src/lib/sanity';
-
-const { width } = Dimensions.get('window');
 
 interface DeveloperData {
     name: string;

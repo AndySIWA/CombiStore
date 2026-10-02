@@ -133,11 +133,9 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
             ...cat,
             id: `cat_${Date.now()}_${Math.random().toString(36).slice(2)}`,
         };
-        setCategories(prev => {
-            const updated = [...prev, newCat];
-            saveCategories(updated);
-            return updated;
-        });
+        const updated = [...categories, newCat];
+        setCategories(updated);
+        await saveCategories(updated);
 
         const stored = await AsyncStorage.getItem(CUSTOM_CATEGORIES_KEY);
         let customCats: Category[] = [];
@@ -151,46 +149,42 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
         await AsyncStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCats));
 
         return newCat;
-    }, []);
+    }, [categories]);
 
     /** Supprime une catégorie personnalisée */
     const removeCategory = useCallback(async (id: string) => {
         if (id === 'all') return;
-        setCategories(prev => {
-            const updated = prev.filter(c => c.id !== id);
-            saveCategories(updated);
-            return updated;
-        });
+        const updated = categories.filter(c => c.id !== id);
+        setCategories(updated);
+        await saveCategories(updated);
 
         const stored = await AsyncStorage.getItem(CUSTOM_CATEGORIES_KEY);
         if (stored) {
             const parsed = JSON.parse(stored);
             if (Array.isArray(parsed)) {
-                const updated = parsed.filter((c: Category) => c.id !== id);
-                await AsyncStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(updated));
+                const updatedCustom = parsed.filter((c: Category) => c.id !== id);
+                await AsyncStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(updatedCustom));
             }
         }
-    }, []);
+    }, [categories]);
 
     /** Met à jour une catégorie */
     const updateCategory = useCallback(async (id: string, partial: Partial<Category>) => {
-        setCategories(prev => {
-            const updated = prev.map(c => c.id === id ? { ...c, ...partial } : c);
-            saveCategories(updated);
-            return updated;
-        });
+        const updated = categories.map(c => c.id === id ? { ...c, ...partial } : c);
+        setCategories(updated);
+        await saveCategories(updated);
 
         const stored = await AsyncStorage.getItem(CUSTOM_CATEGORIES_KEY);
         if (stored) {
             const parsed = JSON.parse(stored);
             if (Array.isArray(parsed)) {
-                const updated = parsed.map((c: Category) =>
+                const updatedCustom = parsed.map((c: Category) =>
                     c.id === id ? { ...c, ...partial } : c,
                 );
-                await AsyncStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(updated));
+                await AsyncStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(updatedCustom));
             }
         }
-    }, []);
+    }, [categories]);
 
     return (
         <CategoriesContext.Provider value={{ categories, loading, addCategory, removeCategory, updateCategory }}>

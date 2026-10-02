@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -33,7 +33,6 @@ export const TabBarAnimated: React.FC<TabBarAnimatedProps> = ({
   backgroundColor = 'rgba(22, 25, 30, 0.95)',
 }) => {
   const indicatorPosition = useSharedValue(0);
-  const [prevIndex, setPrevIndex] = useState(0);
 
   useEffect(() => {
     const totalWidth = 100;
@@ -42,8 +41,7 @@ export const TabBarAnimated: React.FC<TabBarAnimatedProps> = ({
       activeIndex * tabWidth,
       ANIMATIONS.timingConfigs.tabAnimation,
     );
-    setPrevIndex(activeIndex);
-  }, [activeIndex]);
+  }, [activeIndex, tabs.length]);
 
   const indicatorStyle = useAnimatedStyle(() => ({
     left: `${indicatorPosition.value}%`,

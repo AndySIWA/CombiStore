@@ -31,7 +31,7 @@ export const AppCard = ({ app, category, onPress, onLongPress, isInstalled, acti
     const { theme, mode } = useTheme();
     const { isFavorite, toggleFavorite } = useFavorites();
     const isFeatured = false;
-    const favorite = isFavorite(app.id);
+    const favorite = isFavorite(app.id, app.remoteId);
 
     const iconValue = typeof app.icon === 'string' ? app.icon : '';
     const displayIcon = iconValue || '❔';
@@ -74,7 +74,7 @@ export const AppCard = ({ app, category, onPress, onLongPress, isInstalled, acti
                             {/* Actions rapides haut-droite (Favori & statut réseau) */}
                             <View style={styles.topRightActions}>
                                 <TouchableOpacity
-                                    onPress={() => toggleFavorite(app.id)}
+                                    onPress={() => toggleFavorite(app.id, app.remoteId)}
                                     style={[
                                         styles.favButton,
                                         {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -52,9 +52,8 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
 }) => {
   const { theme, mode } = useTheme();
   const { isFavorite, toggleFavorite } = useFavorites();
-  const [isAnimationStarted, setIsAnimationStarted] = useState(false);
 
-  const favorite = isFavorite(app.id);
+  const favorite = isFavorite(app.id, app.remoteId);
 
   // Valeurs partagées Reanimated
   const opacity = useSharedValue(0);
@@ -73,7 +72,6 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
 
       translateY.value = withSpring(0, ANIMATIONS.timingConfigs.spring);
       scale.value = withSpring(1, ANIMATIONS.timingConfigs.spring);
-      setIsAnimationStarted(true);
     }, delay);
 
     return () => clearTimeout(timer);
@@ -92,7 +90,7 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
       withTiming(1.35, { duration: 120, easing: Easing.out(Easing.ease) }),
       withSpring(1, { damping: 8, stiffness: 120 }),
     );
-    toggleFavorite(app.id);
+    toggleFavorite(app.id, app.remoteId);
   };
 
   const iconValue = typeof app.icon === 'string' ? app.icon : '';

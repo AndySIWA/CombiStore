@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, StyleSheet, Text } from 'react-native';
+import { TouchableOpacity, StyleSheet, Text, StyleProp, ViewStyle } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -21,7 +21,7 @@ interface GlowButtonProps {
   /** État désactivé */
   disabled?: boolean;
   /** Styles personnalisés */
-  style?: any;
+  style?: StyleProp<ViewStyle>;
 }
 
 /**
@@ -92,6 +92,7 @@ export const GlowButton: React.FC<GlowButtonProps> = ({
               opacity: disabled ? 0.5 : 1,
             },
             animatedStyle,
+            style,
           ]}
         >
           <Text style={[styles.text, textSizeStyles[size], { color: '#fff' }]}>

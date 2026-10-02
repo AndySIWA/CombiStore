@@ -32,7 +32,7 @@ interface AppsContextType {
     /** Met à jour les propriétés d'une application */
     updateApp: (id: string, partial: Partial<MiniApp>) => Promise<void>;
     /** Force la récupération des applications distantes depuis Sanity CMS */
-    fetchRemoteApps: (baseApps?: MiniApp[]) => Promise<RemoteApp[]>;
+    fetchRemoteApps: () => Promise<RemoteApp[]>;
     /** Importe une application distante dans la liste des applications locales */
     importRemoteApp: (remoteApp: RemoteApp) => Promise<MiniApp | null>;
     /** Vérifie et applique automatiquement les mises à jour des Mini-Apps */
@@ -159,16 +159,19 @@ export function AppsProvider({ children }: { children: ReactNode }) {
     const autoUpdateInstalledApps = async (
         localApps: MiniApp[],
         remoteApps: RemoteApp[],
+        matchByName = false,
     ): Promise<MiniApp[]> => {
         let hasUpdates = false;
 
         const updatedApps = localApps.map(localApp => {
-            if (!localApp.remoteId) {
+            if (!localApp.remoteId && !matchByName) {
                 return localApp;
             }
 
             const remoteApp = remoteApps.find(
-                app => app.id === localApp.remoteId,
+                app =>
+                    (localApp.remoteId && app.id === localApp.remoteId) ||
+                    (matchByName && !localApp.remoteId && app.name === localApp.name),
             );
 
             if (!remoteApp || !hasRemoteChanges(localApp, remoteApp)) {
@@ -208,7 +211,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
     };
 
     /** Récupère les applications distantes depuis Sanity CMS */
-    const fetchRemoteApps = useCallback(async (baseApps?: MiniApp[]): Promise<RemoteApp[]> => {
+    const fetchRemoteApps = useCallback(async (): Promise<RemoteApp[]> => {
         setRefreshingRemote(true);
         let timeoutId: ReturnType<typeof setTimeout> | undefined;
         try {
@@ -250,16 +253,18 @@ export function AppsProvider({ children }: { children: ReactNode }) {
                 try { currentApps = JSON.parse(stored); } catch (_) { }
             }
 
+            let parsedRemote: RemoteApp[] = [];
             if (storedRemote) {
                 try {
-                    const parsedRemote = JSON.parse(storedRemote);
-                    if (Array.isArray(parsedRemote) && parsedRemote.length > 0) {
+                    const parsed = JSON.parse(storedRemote);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        parsedRemote = parsed;
                         setRemoteApps(parsedRemote);
                     }
                 } catch (_) { }
             }
 
-            if (currentApps.length === 0 && (!storedRemote || JSON.parse(storedRemote).length === 0)) {
+            if (currentApps.length === 0 && parsedRemote.length === 0) {
                 setApps(SAMPLE_APPS);
                 saveApps(SAMPLE_APPS);
             }
@@ -275,7 +280,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
         const initializeApps = async () => {
             const loadedApps = await loadApps();
 
-            const remote = await fetchRemoteApps(loadedApps);
+            const remote = await fetchRemoteApps();
 
             if (remote.length > 0 && loadedApps.length > 0) {
                 const updatedApps = await autoUpdateInstalledApps(
@@ -400,6 +405,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
             const updatedApps = await autoUpdateInstalledApps(
                 currentApps,
                 remoteApps,
+                true,
             );
 
             setApps(updatedApps);
