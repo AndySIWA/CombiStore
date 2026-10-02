@@ -5,10 +5,15 @@ import { createClient } from '@sanity/client';
  * Permet d'effectuer des requêtes GROQ pour récupérer le catalogue d'applications,
  * les catégories et les informations développeur.
  */
+// Sur web (Netlify), on utilise le CDN Sanity (apicdn.sanity.io) pour éviter
+// les erreurs CORS. Le CDN est public et ne nécessite pas d'autorisation d'origine.
+// Sur mobile (React Native), le CDN est également plus rapide pour les lectures.
+const isWeb = typeof document !== 'undefined';
+
 export const client = createClient({
   projectId: process.env.EXPO_PUBLIC_SANITY_PROJECT_ID || '7a6tocy4',
   dataset: process.env.EXPO_PUBLIC_SANITY_DATASET || 'production',
-  useCdn: false,
+  useCdn: isWeb, // true sur web → apicdn.sanity.io (pas de CORS), false sur mobile
   apiVersion: '2024-03-01',
 });
 
