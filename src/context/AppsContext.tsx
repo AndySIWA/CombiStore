@@ -177,7 +177,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
         return updatedApps;
     };
 
-/** Récupère les applications distantes depuis Sanity CMS */
+    /** Récupère les applications distantes depuis Sanity CMS */
     const fetchRemoteApps = useCallback(async (baseApps?: MiniApp[]): Promise<RemoteApp[]> => {
         setRefreshingRemote(true);
         let timeoutId: ReturnType<typeof setTimeout> | undefined;
@@ -189,11 +189,11 @@ export function AppsProvider({ children }: { children: ReactNode }) {
                     timeoutId = setTimeout(() => reject(new Error('SANITY_TIMEOUT')), 15000);
                 }),
             ]);
-            
-            if (__DEV__) {
-                console.log('[Sanity] remote apps count:', Array.isArray(data) ? data.length : 0);
-            }
-            
+
+            // if (__DEV__) {
+            //     console.log('[Sanity] remote apps count:', Array.isArray(data) ? data.length : 0);
+            // }
+
             if (data && data.length > 0) {
                 setRemoteApps(data);
                 saveRemoteAppsCache(data);
@@ -217,7 +217,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
 
             let currentApps: MiniApp[] = [];
             if (stored) {
-                try { currentApps = JSON.parse(stored); } catch (_) {}
+                try { currentApps = JSON.parse(stored); } catch (_) { }
             }
 
             if (storedRemote) {
@@ -226,7 +226,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
                     if (Array.isArray(parsedRemote) && parsedRemote.length > 0) {
                         setRemoteApps(parsedRemote);
                     }
-                } catch (_) {}
+                } catch (_) { }
             }
 
             if (currentApps.length === 0 && (!storedRemote || JSON.parse(storedRemote).length === 0)) {
@@ -239,7 +239,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
             if (timeoutId !== undefined) clearTimeout(timeoutId);
             setRefreshingRemote(false);
         }
-    }, [apps]);
+    }, []);
 
     useEffect(() => {
         const initializeApps = async () => {
