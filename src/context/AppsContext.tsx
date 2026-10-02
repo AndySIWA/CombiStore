@@ -133,6 +133,29 @@ export function AppsProvider({ children }: { children: ReactNode }) {
         );
     };
 
+    const isRemoteVersionNewer = (
+        localVersion?: string,
+        remoteVersion?: string,
+    ): boolean => {
+        if (!remoteVersion) return false;
+        if (!localVersion) return true;
+
+        const local = localVersion.split('.').map(Number);
+        const remote = remoteVersion.split('.').map(Number);
+
+        const length = Math.max(local.length, remote.length);
+
+        for (let i = 0; i < length; i++) {
+            const localPart = local[i] || 0;
+            const remotePart = remote[i] || 0;
+
+            if (remotePart > localPart) return true;
+            if (remotePart < localPart) return false;
+        }
+
+        return false;
+    };
+
     const autoUpdateInstalledApps = async (
         localApps: MiniApp[],
         remoteApps: RemoteApp[],
@@ -149,6 +172,13 @@ export function AppsProvider({ children }: { children: ReactNode }) {
             );
 
             if (!remoteApp || !hasRemoteChanges(localApp, remoteApp)) {
+                return localApp;
+            }
+
+            // Ne jamais remplacer une version installée par une version distante plus ancienne.
+            if (
+                !isRemoteVersionNewer(localApp.version, remoteApp.version)
+            ) {
                 return localApp;
             }
 
